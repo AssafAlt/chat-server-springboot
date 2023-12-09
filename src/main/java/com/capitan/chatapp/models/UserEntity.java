@@ -14,10 +14,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -48,6 +48,12 @@ public class UserEntity {
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
     private List<Role> roles = new ArrayList<>();
+
+    @OneToMany(mappedBy = "senderEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FriendRequest> sentFriendRequests = new ArrayList<>();
+
+    @OneToMany(mappedBy = "receiverEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FriendRequest> receivedFriendRequests = new ArrayList<>();
 
     public String generateEncodedNickname(String nickNamePrefix) {
         // Extract the prefix of the username until the '@' sign
