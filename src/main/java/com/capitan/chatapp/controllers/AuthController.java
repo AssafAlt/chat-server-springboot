@@ -17,7 +17,6 @@ import com.capitan.chatapp.dto.LoginDto;
 import com.capitan.chatapp.dto.RegisterDto;
 import com.capitan.chatapp.models.UserEntity;
 import com.capitan.chatapp.repository.RoleRepository;
-import com.capitan.chatapp.repository.UserRepository;
 import com.capitan.chatapp.security.JwtGenerator;
 import com.capitan.chatapp.services.UserService;
 
@@ -53,7 +52,7 @@ public class AuthController {
                         loginDto.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = jwtGenerator.generateToken(authentication);
-        String profileImagePath = userService.findProfileImageByUsername(loginDto.getUsername());
+        String profileImagePath = userService.getProfileImageByUsername(loginDto.getUsername());
         return new ResponseEntity<>(new AuthResponseDto(token, profileImagePath), HttpStatus.OK);
     }
 
