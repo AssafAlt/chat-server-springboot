@@ -1,6 +1,7 @@
 package com.capitan.chatapp.controllers;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,6 +20,9 @@ import com.capitan.chatapp.models.UserEntity;
 import com.capitan.chatapp.repository.RoleRepository;
 import com.capitan.chatapp.security.JwtGenerator;
 import com.capitan.chatapp.services.UserService;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.Collections;
 
@@ -45,15 +49,24 @@ public class AuthController {
     }
 
     @PostMapping("login")
-    public ResponseEntity<AuthResponseDto> login(@RequestBody LoginDto loginDto) {
+    public ResponseEntity<AuthResponseDto> login(@RequestBody LoginDto loginDto, HttpServletResponse response) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginDto.getUsername(),
                         loginDto.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String token = jwtGenerator.generateToken(authentication);
+
+        // Generate a cookie and add it to the response
+        Cookie jwtCookie = jwtGenerator.generateCookie(authentication);
+        response.addCookie(jwtCookie);
+
         String profileImagePath = userService.getProfileImageByUsername(loginDto.getUsername());
-        return new ResponseEntity<>(new AuthResponseDto(token, profileImagePath), HttpStatus.OK);
+        AuthResponseDto authResponse = new AuthResponseDto(jwtCookie.getValue(), profileImagePath);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Set-Cookie", jwtCookie.toString()); // Add the cookie to the response headers
+
+        return new ResponseEntity<>(authResponse, headers, HttpStatus.OK);
     }
 
     @PostMapping("register")

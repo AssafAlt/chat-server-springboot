@@ -5,7 +5,6 @@ import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +17,7 @@ import com.capitan.chatapp.security.JwtGenerator;
 import com.capitan.chatapp.services.FriendRequestService;
 import com.capitan.chatapp.services.UserService;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
@@ -41,7 +41,7 @@ public class FriendRequestController {
     public ResponseEntity<String> addFriend(@RequestBody FriendRequestDto friendRequestDto,
             HttpServletRequest request) {
         Optional<UserEntity> sender = userService
-                .findByUsername(jwtGenerator.getUsernameFromJwt(getJWTFromRequest(request)));
+                .findByUsername(jwtGenerator.getUsernameFromJwt(getJWTFromCookies(request)));
         Optional<UserEntity> reciever = userService.findByNickname(friendRequestDto.getReceiverNickname());
 
         if (sender.isPresent() && reciever.isPresent()) {
@@ -64,10 +64,14 @@ public class FriendRequestController {
         }
     }
 
-    private String getJWTFromRequest(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
+    private String getJWTFromCookies(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("JWT_TOKEN".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
         }
         return null;
     }

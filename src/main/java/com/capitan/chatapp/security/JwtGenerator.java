@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import jakarta.servlet.http.Cookie;
 
 @Component
 public class JwtGenerator {
@@ -25,7 +26,16 @@ public class JwtGenerator {
                 .signWith(SecurityConstants.JWT_SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
         return token;
+    }
 
+    public Cookie generateCookie(Authentication authentication) {
+        String token = generateToken(authentication);
+
+        Cookie cookie = new Cookie("JWT_TOKEN", token);
+        cookie.setMaxAge((int) SecurityConstants.JWT_EXPIRATION / 1000); // Set the cookie expiration time in seconds
+        cookie.setPath("/"); // Set the cookie path as needed
+
+        return cookie;
     }
 
     public String getUsernameFromJwt(String token) {
@@ -35,7 +45,6 @@ public class JwtGenerator {
                 .parseClaimsJws(token)
                 .getBody();
         return claims.getSubject();
-
     }
 
     public boolean validateToken(String token) {
