@@ -5,6 +5,6 @@ import lombok.Data;
 @Data
 public class FriendRequestDto {
 
-    private String userNickname;
+    private int recieverId;
 
 }

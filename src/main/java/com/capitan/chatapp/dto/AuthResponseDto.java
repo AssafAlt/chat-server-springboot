@@ -12,6 +12,7 @@ public class AuthResponseDto {
     public AuthResponseDto(String accessToken, String imagePath) {
         this.accessToken = accessToken;
         this.imagePath = imagePath;
+
     }
 
 }
