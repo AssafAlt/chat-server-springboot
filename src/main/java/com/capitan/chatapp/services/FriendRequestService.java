@@ -14,4 +14,9 @@ public class FriendRequestService {
     public void saveFriendRequest(FriendRequest friendRequest) {
         friendRequestsRepository.save(friendRequest);
     }
+
+    public void deleteFriendRequest(int friendRequestId) {
+        friendRequestsRepository.deleteById(friendRequestId);
+
+    }
 }

@@ -1,5 +1,9 @@
 package com.capitan.chatapp.models;
 
+import java.time.LocalDate;
+
+import org.springframework.format.annotation.DateTimeFormat;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -8,42 +12,35 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalDate;
-import org.springframework.format.annotation.DateTimeFormat;
 
-@Data
 @Entity
+@Table(name = "friendships")
+@Data
 @NoArgsConstructor
-@Table(name = "friend_requests", uniqueConstraints = {
-        @UniqueConstraint(columnNames = { "sender_id", "receiver_id" })
-})
-public class FriendRequest {
-
+public class Friendship {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @NotBlank
-    @Column(name = "sender_nickname")
-    private String senderNickname;
+    @Column(name = "user1_nickname")
+    private String userOneNickname;
 
     @NotBlank
-    @Column(name = "receiver_nickname")
-    private String receiverNickname;
+    @Column(name = "user2_nickname")
+    private String userTwoNickname;
 
     @DateTimeFormat(pattern = "MM-dd-yyyy")
     private LocalDate date;
 
     @ManyToOne
-    @JoinColumn(name = "sender_id", nullable = false)
-    private UserEntity senderEntity;
+    @JoinColumn(name = "user1_id")
+    private UserEntity user1;
 
     @ManyToOne
-    @JoinColumn(name = "receiver_id", nullable = false)
-    private UserEntity receiverEntity;
-
+    @JoinColumn(name = "user2_id")
+    private UserEntity user2;
 }

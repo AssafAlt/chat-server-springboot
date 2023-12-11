@@ -55,6 +55,12 @@ public class UserEntity {
     @OneToMany(mappedBy = "receiverEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FriendRequest> receivedFriendRequests = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user1", cascade = CascadeType.ALL)
+    private List<Friendship> friendshipsAsUser1 = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user2", cascade = CascadeType.ALL)
+    private List<Friendship> friendshipsAsUser2 = new ArrayList<>();
+
     public String generateEncodedNickname(String nickNamePrefix) {
         // Extract the prefix of the username until the '@' sign
         int atIndex = this.username.indexOf('@');
