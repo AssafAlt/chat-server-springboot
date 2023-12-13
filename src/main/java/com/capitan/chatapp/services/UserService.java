@@ -16,7 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.capitan.chatapp.dto.AuthResponseDto;
+import com.capitan.chatapp.dto.LoginResponseDto;
 import com.capitan.chatapp.dto.LoginDto;
 import com.capitan.chatapp.dto.RegisterDto;
 
@@ -25,11 +25,10 @@ import com.capitan.chatapp.models.UserEntity;
 import com.capitan.chatapp.repository.RoleRepository;
 import com.capitan.chatapp.repository.UserRepository;
 import com.capitan.chatapp.security.JwtGenerator;
-
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Service
 public class UserService {
@@ -53,22 +52,26 @@ public class UserService {
     public ResponseEntity<?> login(@RequestBody LoginDto loginDto, HttpServletResponse response) {
 
         try {
+
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginDto.getUsername(),
                             loginDto.getPassword()));
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            Cookie jwtCookie = jwtGenerator.generateCookie(authentication);
-            response.addCookie(jwtCookie);
+            Optional<UserEntity> user = userRepository.findByUsername(loginDto.getUsername());
+            if (user.isPresent()) {
+                Cookie jwtCookie = jwtGenerator.generateCookie(authentication);
+                response.addCookie(jwtCookie);
+                // HttpHeaders headers = new HttpHeaders();
+                // headers.add("Set-Cookie", jwtCookie.toString());
+                UserEntity currentUser = user.get();
+                LoginResponseDto loginResponseDto = new LoginResponseDto(currentUser.getNickname(),
+                        currentUser.getProfileImg());
+                return new ResponseEntity<>(loginResponseDto, HttpStatus.OK);
+            } else
+                return new ResponseEntity<>("User wasn't found", HttpStatus.NOT_FOUND);
 
-            String profileImagePath = userRepository.getProfileImageByUsername(loginDto.getUsername());
-            AuthResponseDto authResponse = new AuthResponseDto(jwtCookie.getValue(), profileImagePath);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.add("Set-Cookie", jwtCookie.toString());
-
-            return new ResponseEntity<>(authResponse, headers, HttpStatus.OK);
         } catch (Exception e) {
 
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);

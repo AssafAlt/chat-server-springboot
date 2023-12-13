@@ -35,18 +35,19 @@ public class SecurityConfig {
                 .cors(cors -> cors
                         .configurationSource(request -> {
                             CorsConfiguration corsConfiguration = new CorsConfiguration();
-                            corsConfiguration.addAllowedOrigin("http://127.0.0.1:5173");
+                            corsConfiguration.addAllowedOrigin("http://127.0.0.1:5173"); // Specify your frontend origin
                             corsConfiguration.addAllowedHeader("*");
                             corsConfiguration.addAllowedMethod("*");
                             return corsConfiguration;
                         }))
+
                 .csrf(csrf -> csrf.disable())
 
                 .exceptionHandling(handling -> handling.authenticationEntryPoint(authEntryPoint))
                 .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeRequests(requests -> requests
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .anyRequest().authenticated())
+                        .requestMatchers("/api/auth/**").permitAll().anyRequest().authenticated())
+
                 .httpBasic(withDefaults())
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
