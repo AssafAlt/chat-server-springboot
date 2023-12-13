@@ -11,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -31,6 +32,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                .cors(cors -> cors
+                        .configurationSource(request -> {
+                            CorsConfiguration corsConfiguration = new CorsConfiguration();
+                            corsConfiguration.addAllowedOrigin("http://127.0.0.1:5173");
+                            corsConfiguration.addAllowedHeader("*");
+                            corsConfiguration.addAllowedMethod("*");
+                            return corsConfiguration;
+                        }))
                 .csrf(csrf -> csrf.disable())
                 .cors(withDefaults())
                 .exceptionHandling(handling -> handling.authenticationEntryPoint(authEntryPoint))
