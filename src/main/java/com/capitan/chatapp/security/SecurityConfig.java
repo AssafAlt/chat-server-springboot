@@ -41,7 +41,7 @@ public class SecurityConfig {
                             return corsConfiguration;
                         }))
                 .csrf(csrf -> csrf.disable())
-                .cors(withDefaults())
+
                 .exceptionHandling(handling -> handling.authenticationEntryPoint(authEntryPoint))
                 .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeRequests(requests -> requests
