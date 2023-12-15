@@ -67,7 +67,7 @@ public class UserService {
                 // headers.add("Set-Cookie", jwtCookie.toString());
                 UserEntity currentUser = user.get();
                 LoginResponseDto loginResponseDto = new LoginResponseDto(currentUser.getNickname(),
-                        currentUser.getProfileImg());
+                        currentUser.getProfileImg(), currentUser.isFirstLogin());
                 return new ResponseEntity<>(loginResponseDto, HttpStatus.OK);
             } else
                 return new ResponseEntity<>("User wasn't found", HttpStatus.NOT_FOUND);
@@ -85,17 +85,24 @@ public class UserService {
                 return new ResponseEntity<>("Username is already taken!", HttpStatus.BAD_REQUEST);
             }
 
-            UserEntity user = new UserEntity();
-            user.setUsername(registerDto.getUsername());
-            user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
-            user.setProfileImg(registerDto.getProfileImg());
-            user.setNickname(user.generateEncodedNickname(registerDto.getNickname()));
+            if (registerDto.getPassword().equals(registerDto.getConfirmPassword())) {
+                UserEntity user = new UserEntity();
+                user.setUsername(registerDto.getUsername());
+                user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
+                user.setProfileImg(
+                        registerDto.getProfileImg());
+                user.setNickname(user.generateEncodedNickname(registerDto.getNickname()));
+                user.setFirstLogin(true);
 
-            Role roles = roleRepository.findByName("USER").get();
-            user.setRoles(Collections.singletonList(roles));
-            userRepository.save(user);
+                Role roles = roleRepository.findByName("USER").get();
+                user.setRoles(Collections.singletonList(roles));
+                userRepository.save(user);
 
-            return new ResponseEntity<>("User registered successfully", HttpStatus.OK);
+                return new ResponseEntity<>("User registered successfully", HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("Password and confirm password aren't equal", HttpStatus.BAD_REQUEST);
+            }
+
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }

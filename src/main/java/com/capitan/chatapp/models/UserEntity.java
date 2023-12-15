@@ -36,6 +36,8 @@ public class UserEntity {
     @Email(message = "Please provide a valid email address")
     private String username;
 
+    private boolean isFirstLogin;
+
     @Column(unique = true)
 
     private String nickname;
