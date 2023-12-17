@@ -31,7 +31,7 @@ public class JwtGenerator {
     public Cookie generateCookie(Authentication authentication) {
         String token = generateToken(authentication);
 
-        Cookie cookie = new Cookie("JWT_TOKEN", token);
+        Cookie cookie = new Cookie("jwt_token", token);
         cookie.setMaxAge((int) SecurityConstants.JWT_EXPIRATION / 1000);
         cookie.setDomain("localhost");
         cookie.setSecure(false);

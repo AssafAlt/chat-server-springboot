@@ -53,7 +53,7 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
                 .logout(logout -> logout
                         .logoutUrl("/api/auth/logout")
-                        .deleteCookies("JWT_TOKEN")
+                        .deleteCookies("jwt_token")
                         .logoutSuccessHandler(
                                 (request, response, authentication) -> response.setStatus(HttpServletResponse.SC_OK)));
 
