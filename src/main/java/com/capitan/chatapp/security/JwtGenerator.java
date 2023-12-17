@@ -32,8 +32,10 @@ public class JwtGenerator {
         String token = generateToken(authentication);
 
         Cookie cookie = new Cookie("JWT_TOKEN", token);
-        cookie.setMaxAge((int) SecurityConstants.JWT_EXPIRATION / 1000); // Set the cookie expiration time in seconds
-        cookie.setPath("/api"); // Set the cookie path as needed
+        cookie.setMaxAge((int) SecurityConstants.JWT_EXPIRATION / 1000);
+        cookie.setDomain("localhost");
+        cookie.setSecure(false);
+        cookie.setPath("/");
 
         return cookie;
     }

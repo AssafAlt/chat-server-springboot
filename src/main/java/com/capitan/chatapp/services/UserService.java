@@ -108,30 +108,10 @@ public class UserService {
         }
     }
 
-    public ResponseEntity<?> searchUsersByNicknamePrefix(String prefix, HttpServletRequest request) {
-        try {
-            Optional<Integer> op = userRepository
-                    .findUserIdByUsername(jwtGenerator.getUsernameFromJwt(getJWTFromCookies(request)));
-            if (op.isPresent()) {
-                int userId = op.get();
-                System.out.println(userId);
-                System.out.println(prefix);
-                Optional<List<UserEntity>> searchedUsers = userRepository.findByNicknamePrefix(prefix, userId);
-                System.out.println(searchedUsers);
-                if (searchedUsers.isPresent()) {
-                    List<UserEntity> foundUsers = searchedUsers.get();
-                    System.out.println(foundUsers);
-                    return new ResponseEntity<>(foundUsers, HttpStatus.OK);
-
-                } else {
-                    return new ResponseEntity<>("User wasn't found", HttpStatus.OK);
-                }
-            } else {
-                return new ResponseEntity<>("Unauthorized to operate this action!", HttpStatus.UNAUTHORIZED);
-            }
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<List<UserEntity>> searchUsersByNicknamePrefix(String prefix,
+            HttpServletRequest request) {
+        List<UserEntity> foundUsers = userRepository.findByNicknamePrefix(prefix);
+        return new ResponseEntity<>(foundUsers, HttpStatus.OK);
 
     }
 

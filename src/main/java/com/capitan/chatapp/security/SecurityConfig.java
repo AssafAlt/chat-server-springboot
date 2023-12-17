@@ -35,7 +35,7 @@ public class SecurityConfig {
                 .cors(cors -> cors
                         .configurationSource(request -> {
                             CorsConfiguration corsConfiguration = new CorsConfiguration();
-                            corsConfiguration.addAllowedOrigin("http://127.0.0.1:5173"); // Specify your frontend origin
+                            corsConfiguration.addAllowedOrigin("http://localhost:3000"); // Specify your frontend origin
                             corsConfiguration.addAllowedHeader("*");
                             corsConfiguration.addAllowedMethod("*");
                             return corsConfiguration;
