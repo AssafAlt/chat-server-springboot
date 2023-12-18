@@ -21,9 +21,12 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("search")
-    public ResponseEntity<?> searchUsersByNickname(@RequestParam String prefix, HttpServletRequest request) {
+    @GetMapping("/search")
+    public ResponseEntity<?> searchUsers(
+            @RequestParam String prefix,
+            HttpServletRequest request) {
         return userService.searchUsersByNicknamePrefix(prefix, request);
+
     }
 
 }

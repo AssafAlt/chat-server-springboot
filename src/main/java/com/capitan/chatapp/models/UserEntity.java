@@ -47,8 +47,8 @@ public class UserEntity {
 
     private String profileImg;
 
-    public UserEntity(int id, String nickname, String profileImg) {
-        this.id = id;
+    public UserEntity(String profileImg, String nickname) {
+
         this.nickname = nickname;
         this.profileImg = profileImg;
     }

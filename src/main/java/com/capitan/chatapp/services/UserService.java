@@ -3,6 +3,7 @@ package com.capitan.chatapp.services;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,7 +19,8 @@ import org.springframework.stereotype.Service;
 import com.capitan.chatapp.dto.LoginResponseDto;
 import com.capitan.chatapp.dto.LoginDto;
 import com.capitan.chatapp.dto.RegisterDto;
-
+import com.capitan.chatapp.dto.SearchUserResponseDto;
+import com.capitan.chatapp.helpers.UserHelper;
 import com.capitan.chatapp.models.Role;
 import com.capitan.chatapp.models.UserEntity;
 import com.capitan.chatapp.repository.RoleRepository;
@@ -38,14 +40,17 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
     private JwtGenerator jwtGenerator;
     private AuthenticationManager authenticationManager;
+    private UserHelper userHelper;
 
     public UserService(UserRepository userRepository, RoleRepository roleRepository,
-            PasswordEncoder passwordEncoder, JwtGenerator jwtGenerator, AuthenticationManager authenticationManager) {
+            PasswordEncoder passwordEncoder, JwtGenerator jwtGenerator, AuthenticationManager authenticationManager,
+            UserHelper userHelper) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtGenerator = jwtGenerator;
         this.authenticationManager = authenticationManager;
+        this.userHelper = userHelper;
     }
 
     public ResponseEntity<?> login(@RequestBody LoginDto loginDto, HttpServletResponse response) {
@@ -62,8 +67,6 @@ public class UserService {
             if (user.isPresent()) {
                 Cookie jwtCookie = jwtGenerator.generateCookie(authentication);
                 response.addCookie(jwtCookie);
-                // HttpHeaders headers = new HttpHeaders();
-                // headers.add("Set-Cookie", jwtCookie.toString());
                 UserEntity currentUser = user.get();
                 LoginResponseDto loginResponseDto = new LoginResponseDto(currentUser.getNickname(),
                         currentUser.getProfileImg(), currentUser.isFirstLogin());
@@ -107,11 +110,32 @@ public class UserService {
         }
     }
 
-    public ResponseEntity<List<UserEntity>> searchUsersByNicknamePrefix(String prefix,
-            HttpServletRequest request) {
-        List<UserEntity> foundUsers = userRepository.findByNicknamePrefix(prefix);
-        return new ResponseEntity<>(foundUsers, HttpStatus.OK);
+    public ResponseEntity<?> searchUsersByNicknamePrefix(String prefix, HttpServletRequest request) {
+        try {
+            Optional<UserEntity> op = userRepository
+                    .findByUsername(jwtGenerator.getUsernameFromJwt(getJWTFromCookies(request)));
+            if (op.isPresent()) {
+                String searcherNickname = op.get().getNickname();
+                System.out.println(prefix);
+                System.out.println(searcherNickname);
+                Optional<List<UserEntity>> searchedUsers = userRepository
+                        .findByNicknamePrefix("%" + prefix + "%", searcherNickname);
 
+                if (searchedUsers.isPresent()) {
+                    List<UserEntity> foundUsers = searchedUsers.get();
+                    List<SearchUserResponseDto> results = userHelper.mapUserEntitiesToSearchUserResponses(foundUsers);
+
+                    return new ResponseEntity<>(results, HttpStatus.OK);
+                } else {
+                    return new ResponseEntity<>("There is no matching result", HttpStatus.OK);
+                }
+
+            } else {
+                return new ResponseEntity<>("Unauthorized operation", HttpStatus.UNAUTHORIZED);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
 
     public String getProfileImageByUsername(String username) {
@@ -145,4 +169,5 @@ public class UserService {
         }
         return null;
     }
+
 }
