@@ -17,8 +17,8 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
     @Query("SELECT u.id FROM UserEntity u WHERE u.username = :username")
     Optional<Integer> findUserIdByUsername(@Param("username") String username);
 
-    @Query("SELECT u.id,u.profileImg,u.nickname FROM UserEntity u WHERE LOWER(u.nickname) LIKE LOWER(:prefix) AND u.id != :userId")
-    Optional<List<UserEntity>> findByNicknamePrefix(@Param("prefix") String prefix, @Param("userId") int userId);
+    @Query("SELECT u FROM UserEntity u WHERE LOWER(u.nickname) LIKE LOWER(':prefix%')")
+    List<UserEntity> findByNicknamePrefix(@Param("prefix") String prefix);
 
     @Query("SELECT u.profileImg FROM UserEntity u WHERE u.username = ?1")
     String getProfileImageByUsername(String username);
