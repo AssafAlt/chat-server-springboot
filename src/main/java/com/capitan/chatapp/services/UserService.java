@@ -3,7 +3,6 @@ package com.capitan.chatapp.services;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -116,8 +115,6 @@ public class UserService {
                     .findByUsername(jwtGenerator.getUsernameFromJwt(getJWTFromCookies(request)));
             if (op.isPresent()) {
                 String searcherNickname = op.get().getNickname();
-                System.out.println(prefix);
-                System.out.println(searcherNickname);
                 Optional<List<UserEntity>> searchedUsers = userRepository
                         .findByNicknamePrefix("%" + prefix + "%", searcherNickname);
 
