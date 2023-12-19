@@ -4,10 +4,13 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.capitan.chatapp.models.UserEntity;
+
+import jakarta.transaction.Transactional;
 
 public interface UserRepository extends JpaRepository<UserEntity, Integer> {
         Optional<UserEntity> findByUsername(String username);
@@ -34,5 +37,19 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
 
         @Query("SELECT u.nickname FROM UserEntity u WHERE u.username = ?1")
         String getNicknameByUsername(String username);
+
+        @Modifying
+        @Transactional
+        @Query("UPDATE UserEntity u SET u.profileImg = :profileImg, u.isFirstLogin = :isFirstLogin WHERE u.username = :username")
+        void updateProfileImage(
+                        @Param("username") String username,
+                        @Param("profileImg") String profileImg,
+                        @Param("isFirstLogin") boolean isFirstLogin);
+
+        @Modifying
+        @Transactional
+        @Query("UPDATE UserEntity u SET u.isFirstLogin = :isFirstLogin WHERE u.username = :username")
+        void updateProfileFirstLogin(@Param("username") String username,
+                        @Param("isFirstLogin") boolean isFirstLogin);
 
 }

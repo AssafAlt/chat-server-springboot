@@ -19,6 +19,8 @@ import com.capitan.chatapp.dto.LoginResponseDto;
 import com.capitan.chatapp.dto.LoginDto;
 import com.capitan.chatapp.dto.RegisterDto;
 import com.capitan.chatapp.dto.SearchUserResponseDto;
+import com.capitan.chatapp.dto.UpdateFirstLoginResponseDto;
+import com.capitan.chatapp.dto.UpdateProfileResponseDto;
 import com.capitan.chatapp.helpers.UserHelper;
 import com.capitan.chatapp.models.Role;
 import com.capitan.chatapp.models.UserEntity;
@@ -131,6 +133,44 @@ public class UserService {
                 return new ResponseEntity<>("Unauthorized operation", HttpStatus.UNAUTHORIZED);
             }
         } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    public ResponseEntity<?> updateProfileImage(String imagePath, HttpServletRequest request) {
+        try {
+            String opUsername = jwtGenerator.getUsernameFromJwt(getJWTFromCookies(request));
+            if (userRepository.existsByUsername(opUsername)) {
+                userRepository.updateProfileImage(opUsername, imagePath, false);
+                UpdateProfileResponseDto responseDto = new UpdateProfileResponseDto(imagePath, false);
+
+                return new ResponseEntity<>(responseDto, HttpStatus.OK);
+
+            } else {
+                return new ResponseEntity<>("Unauthorized operation", HttpStatus.UNAUTHORIZED);
+            }
+        } catch (
+
+        Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    public ResponseEntity<?> updateProfileFirstLogin(HttpServletRequest request) {
+        try {
+            String opUsername = jwtGenerator.getUsernameFromJwt(getJWTFromCookies(request));
+            if (userRepository.existsByUsername(opUsername)) {
+                userRepository.updateProfileFirstLogin(opUsername, false);
+                UpdateFirstLoginResponseDto responseDto = new UpdateFirstLoginResponseDto(false);
+
+                return new ResponseEntity<>(responseDto, HttpStatus.OK);
+
+            } else {
+                return new ResponseEntity<>("Unauthorized operation", HttpStatus.UNAUTHORIZED);
+            }
+        } catch (
+
+        Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
