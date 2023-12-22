@@ -32,14 +32,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors
-                        .configurationSource(request -> {
-                            CorsConfiguration corsConfiguration = new CorsConfiguration();
-                            corsConfiguration.addAllowedOrigin("http://localhost:3000"); // Specify your frontend origin
-                            corsConfiguration.addAllowedHeader("*");
-                            corsConfiguration.addAllowedMethod("*");
-                            return corsConfiguration;
-                        }))
+                .cors(withDefaults())
 
                 .csrf(csrf -> csrf.disable())
 

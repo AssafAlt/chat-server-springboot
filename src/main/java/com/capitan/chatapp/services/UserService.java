@@ -20,6 +20,7 @@ import com.capitan.chatapp.dto.LoginDto;
 import com.capitan.chatapp.dto.RegisterDto;
 import com.capitan.chatapp.dto.SearchUserResponseDto;
 import com.capitan.chatapp.dto.UpdateFirstLoginResponseDto;
+import com.capitan.chatapp.dto.UpdateProfileImgDto;
 import com.capitan.chatapp.dto.UpdateProfileResponseDto;
 import com.capitan.chatapp.helpers.UserHelper;
 import com.capitan.chatapp.models.Role;
@@ -137,12 +138,13 @@ public class UserService {
         }
     }
 
-    public ResponseEntity<?> updateProfileImage(String imagePath, HttpServletRequest request) {
+    public ResponseEntity<?> updateProfileImage(UpdateProfileImgDto profileImgDto, HttpServletRequest request) {
         try {
             String opUsername = jwtGenerator.getUsernameFromJwt(getJWTFromCookies(request));
             if (userRepository.existsByUsername(opUsername)) {
-                userRepository.updateProfileImage(opUsername, imagePath, false);
-                UpdateProfileResponseDto responseDto = new UpdateProfileResponseDto(imagePath, false);
+                userRepository.updateProfileImage(opUsername, profileImgDto.getImagePath(), false);
+                UpdateProfileResponseDto responseDto = new UpdateProfileResponseDto(profileImgDto.getImagePath(),
+                        false);
 
                 return new ResponseEntity<>(responseDto, HttpStatus.OK);
 

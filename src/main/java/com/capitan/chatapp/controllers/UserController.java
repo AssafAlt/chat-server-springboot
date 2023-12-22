@@ -1,6 +1,7 @@
 package com.capitan.chatapp.controllers;
 
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.GetMapping;
 
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,10 +36,10 @@ public class UserController {
     @PutMapping("setting/update-profile")
     public ResponseEntity<?> updateProfileImg(@RequestBody UpdateProfileImgDto profileImgDto,
             HttpServletRequest request) {
-        return userService.updateProfileImage(profileImgDto.getImagePath(), request);
+        return userService.updateProfileImage(profileImgDto, request);
     }
 
-    @PutMapping("setting/update-first-login")
+    @GetMapping("setting/update-first-login")
     public ResponseEntity<?> updateProfileFirstLogin(HttpServletRequest request) {
         return userService.updateProfileFirstLogin(request);
     }
