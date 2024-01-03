@@ -1,9 +1,8 @@
 package com.capitan.chatapp.controllers;
 
 import org.springframework.http.ResponseEntity;
-
 import org.springframework.web.bind.annotation.GetMapping;
-
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,12 +11,10 @@ import com.capitan.chatapp.dto.UpdateProfileImgDto;
 import com.capitan.chatapp.services.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/api/users")
-
 public class UserController {
     private UserService userService;
 
@@ -33,7 +30,7 @@ public class UserController {
 
     }
 
-    @PutMapping("setting/update-profile")
+    @PatchMapping("setting/image")
     public ResponseEntity<?> updateProfileImg(@RequestBody UpdateProfileImgDto profileImgDto,
             HttpServletRequest request) {
         return userService.updateProfileImage(profileImgDto, request);
