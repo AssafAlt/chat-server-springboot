@@ -12,7 +12,8 @@ import com.capitan.chatapp.models.UserEntity;
 public class UserHelper {
         public List<SearchUserResponseDto> mapUserEntitiesToSearchUserResponses(List<UserEntity> userEntities) {
                 return userEntities.stream()
-                                .map(userEntity -> new SearchUserResponseDto(userEntity.getProfileImg(),
+                                .map(userEntity -> new SearchUserResponseDto(userEntity.getId(),
+                                                userEntity.getProfileImg(),
                                                 userEntity.getNickname()))
                                 .collect(Collectors.toList());
         }
