@@ -20,7 +20,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
         @Query("SELECT u.id FROM UserEntity u WHERE u.username = :username")
         Optional<Integer> findUserIdByUsername(@Param("username") String username);
 
-        @Query("SELECT NEW UserEntity(u.profileImg, u.nickname) " +
+        @Query("SELECT NEW UserEntity(u.id,u.profileImg, u.nickname) " +
                         "FROM UserEntity u " +
                         "WHERE LOWER(u.nickname) LIKE LOWER(:prefix) " +
                         "AND u.nickname <> :searcherNickname")

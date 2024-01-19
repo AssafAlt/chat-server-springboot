@@ -1,6 +1,7 @@
 package com.capitan.chatapp.services;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import com.capitan.chatapp.dto.FriendRequestDto;
 import com.capitan.chatapp.dto.FriendRequestOpDto;
+import com.capitan.chatapp.dto.GetFriendRequestDto;
 import com.capitan.chatapp.models.FriendRequest;
 import com.capitan.chatapp.models.Friendship;
 import com.capitan.chatapp.models.UserEntity;
@@ -45,6 +47,7 @@ public class FriendRequestService {
         try {
             Optional<UserEntity> sender = userRepository
                     .findByUsername(jwtGenerator.getUsernameFromJwt(getJWTFromCookies(request)));
+
             Optional<UserEntity> reciever = userRepository.findById(friendRequestDto.getRecieverId());
 
             if (sender.isPresent() && reciever.isPresent()) {
@@ -57,6 +60,7 @@ public class FriendRequestService {
 
                 friendRequest.setSenderEntity(senderUser);
                 friendRequest.setReceiverEntity(recieverUser);
+                friendRequest.setStatus("PENDING");
 
                 friendRequestsRepository.save(friendRequest);
                 return new ResponseEntity<>("Request was sent successfully", HttpStatus.OK);
@@ -103,11 +107,11 @@ public class FriendRequestService {
     public ResponseEntity<String> confirmFriendRequest(@RequestBody FriendRequestOpDto friendRequestOpDto,
             HttpServletRequest request) {
         try {
-            int friendRequestIdToDelete = friendRequestOpDto.getFriendRequestId();
+            int friendRequestId = friendRequestOpDto.getFriendRequestId();
             Friendship friendship = new Friendship();
             Optional<UserEntity> op = userRepository
                     .findByUsername(jwtGenerator.getUsernameFromJwt(getJWTFromCookies(request)));
-            Optional<FriendRequest> fRequest = friendRequestsRepository.findById(friendRequestIdToDelete);
+            Optional<FriendRequest> fRequest = friendRequestsRepository.findById(friendRequestId);
 
             if (op.isPresent() && fRequest.isPresent()) {
                 FriendRequest friendRequest = fRequest.get();
@@ -118,7 +122,7 @@ public class FriendRequestService {
                     friendship.setUser1(senderUser);
                     friendship.setUser2(opUser);
                     friendshipRepository.save(friendship);
-                    friendRequestsRepository.deleteById(friendRequestIdToDelete);
+                    friendRequestsRepository.updateStatusById(friendRequestId, "CONFIRMED");
                     return new ResponseEntity<>("Request was confirmed successfully", HttpStatus.OK);
                 } else {
                     return new ResponseEntity<>("User unauthorized for this operation", HttpStatus.UNAUTHORIZED);
@@ -133,6 +137,32 @@ public class FriendRequestService {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
 
+    }
+
+    public ResponseEntity<?> getFriendRequests(HttpServletRequest request) {
+        try {
+            Optional<UserEntity> op = userRepository
+                    .findByUsername(jwtGenerator.getUsernameFromJwt(getJWTFromCookies(request)));
+            if (op.isPresent()) {
+                Optional<List<GetFriendRequestDto>> frequests = friendRequestsRepository
+                        .findFriendRequestsDetailsByReceiverId(op.get().getId());
+                if (frequests.isPresent()) {
+                    return new ResponseEntity<>(frequests.get(), HttpStatus.OK);
+
+                } else {
+                    return new ResponseEntity<>("User unauthorized for this operation", HttpStatus.UNAUTHORIZED);
+                }
+            } else
+
+            {
+                return new ResponseEntity<>("User or request wasn't found", HttpStatus.NOT_FOUND);
+            }
+
+        } catch (
+
+        Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
 
     private String getJWTFromCookies(HttpServletRequest request) {

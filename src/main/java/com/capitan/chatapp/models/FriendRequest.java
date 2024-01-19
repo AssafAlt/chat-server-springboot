@@ -36,4 +36,6 @@ public class FriendRequest {
     @JoinColumn(name = "receiver_id", nullable = false)
     private UserEntity receiverEntity;
 
+    private String status;
+
 }
