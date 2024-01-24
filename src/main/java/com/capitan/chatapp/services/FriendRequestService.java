@@ -141,11 +141,13 @@ public class FriendRequestService {
 
     public ResponseEntity<?> getFriendRequests(HttpServletRequest request) {
         try {
+
             Optional<UserEntity> op = userRepository
                     .findByUsername(jwtGenerator.getUsernameFromJwt(getJWTFromCookies(request)));
             if (op.isPresent()) {
+                UserEntity opUser = op.get();
                 Optional<List<GetFriendRequestDto>> frequests = friendRequestsRepository
-                        .findFriendRequestsDetailsByReceiverId(op.get().getId());
+                        .findFriendRequestsDetailsByReceiverId(opUser.getId());
                 if (frequests.isPresent()) {
                     return new ResponseEntity<>(frequests.get(), HttpStatus.OK);
 

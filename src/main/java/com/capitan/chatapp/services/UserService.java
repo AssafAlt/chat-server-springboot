@@ -22,7 +22,6 @@ import com.capitan.chatapp.dto.SearchUserResponseDto;
 import com.capitan.chatapp.dto.UpdateFirstLoginResponseDto;
 import com.capitan.chatapp.dto.UpdateProfileImgDto;
 import com.capitan.chatapp.dto.UpdateProfileResponseDto;
-import com.capitan.chatapp.helpers.UserHelper;
 import com.capitan.chatapp.models.Role;
 import com.capitan.chatapp.models.UserEntity;
 import com.capitan.chatapp.repository.RoleRepository;
@@ -42,17 +41,15 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
     private JwtGenerator jwtGenerator;
     private AuthenticationManager authenticationManager;
-    private UserHelper userHelper;
 
     public UserService(UserRepository userRepository, RoleRepository roleRepository,
-            PasswordEncoder passwordEncoder, JwtGenerator jwtGenerator, AuthenticationManager authenticationManager,
-            UserHelper userHelper) {
+            PasswordEncoder passwordEncoder, JwtGenerator jwtGenerator, AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtGenerator = jwtGenerator;
         this.authenticationManager = authenticationManager;
-        this.userHelper = userHelper;
+
     }
 
     public ResponseEntity<?> login(@RequestBody LoginDto loginDto, HttpServletResponse response) {
@@ -118,14 +115,12 @@ public class UserService {
                     .findByUsername(jwtGenerator.getUsernameFromJwt(getJWTFromCookies(request)));
             if (op.isPresent()) {
                 String searcherNickname = op.get().getNickname();
-                Optional<List<UserEntity>> searchedUsers = userRepository
+                Optional<List<SearchUserResponseDto>> searchedUsers = userRepository
                         .findByNicknamePrefix("%" + prefix + "%", searcherNickname);
 
                 if (searchedUsers.isPresent()) {
-                    List<UserEntity> foundUsers = searchedUsers.get();
-                    List<SearchUserResponseDto> results = userHelper.mapUserEntitiesToSearchUserResponses(foundUsers);
 
-                    return new ResponseEntity<>(results, HttpStatus.OK);
+                    return new ResponseEntity<>(searchedUsers.get(), HttpStatus.OK);
                 } else {
                     return new ResponseEntity<>("There is no matching result", HttpStatus.OK);
                 }

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.capitan.chatapp.dto.SearchUserResponseDto;
 import com.capitan.chatapp.models.UserEntity;
 
 import jakarta.transaction.Transactional;
@@ -20,11 +21,23 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
         @Query("SELECT u.id FROM UserEntity u WHERE u.username = :username")
         Optional<Integer> findUserIdByUsername(@Param("username") String username);
 
-        @Query("SELECT NEW UserEntity(u.id,u.profileImg, u.nickname) " +
+        /*
+         * @Query("SELECT NEW UserEntity(u.id,u.profileImg, u.nickname) " +
+         * "FROM UserEntity u " +
+         * "WHERE LOWER(u.nickname) LIKE LOWER(:prefix) " +
+         * "AND u.nickname <> :searcherNickname")
+         * Optional<List<UserEntity>> findByNicknamePrefix(
+         * 
+         * @Param("prefix") String prefix,
+         * 
+         * @Param("searcherNickname") String searcherNickname);
+         */
+
+        @Query("SELECT NEW com.capitan.chatapp.dto.SearchUserResponseDto(u.id,u.profileImg, u.nickname) " +
                         "FROM UserEntity u " +
                         "WHERE LOWER(u.nickname) LIKE LOWER(:prefix) " +
                         "AND u.nickname <> :searcherNickname")
-        Optional<List<UserEntity>> findByNicknamePrefix(
+        Optional<List<SearchUserResponseDto>> findByNicknamePrefix(
                         @Param("prefix") String prefix,
                         @Param("searcherNickname") String searcherNickname);
 

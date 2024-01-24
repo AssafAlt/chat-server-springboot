@@ -10,6 +10,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class GetFriendRequestDto {
+    private int id;
     private String profileImg;
     private String nickname;
     @DateTimeFormat(pattern = "MM-dd-yyyy")
