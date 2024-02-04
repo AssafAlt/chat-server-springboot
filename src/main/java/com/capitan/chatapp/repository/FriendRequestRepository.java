@@ -22,7 +22,7 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, In
      * Optional<List<FriendRequest>>
      * findFriendRequestsDetailsByReceiverId(@Param("userId") int userId);
      */
-    @Query("SELECT New com.capitan.chatapp.dto.GetFriendRequestDto(fr.id,fr.senderEntity.profileImg,fr.senderEntity.nickname,fr.date) FROM FriendRequest fr WHERE fr.receiverEntity.id = :userId")
+    @Query("SELECT New com.capitan.chatapp.dto.GetFriendRequestDto(fr.id,fr.senderEntity.profileImg,fr.senderEntity.nickname,fr.date) FROM FriendRequest fr WHERE fr.receiverEntity.id = :userId  AND fr.status = 'PENDING'")
     Optional<List<GetFriendRequestDto>> findFriendRequestsDetailsByReceiverId(@Param("userId") int userId);
 
     @Query("SELECT fr.senderEntity.id FROM FriendRequest fr WHERE fr.receiverEntity.id = :userId")
