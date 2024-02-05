@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.capitan.chatapp.dto.UpdateProfileImgDto;
+import com.capitan.chatapp.services.FriendshipService;
 import com.capitan.chatapp.services.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,9 +18,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequestMapping("/api/users")
 public class UserController {
     private UserService userService;
+    private FriendshipService friendshipService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, FriendshipService friendshipService) {
         this.userService = userService;
+        this.friendshipService = friendshipService;
     }
 
     @GetMapping("search")
@@ -27,6 +30,12 @@ public class UserController {
             @RequestParam String prefix,
             HttpServletRequest request) {
         return userService.searchUsersByNicknamePrefix(prefix, request);
+
+    }
+
+    @GetMapping("friends")
+    public ResponseEntity<?> getFriends(HttpServletRequest request) {
+        return friendshipService.getFriendRequests(request);
 
     }
 
