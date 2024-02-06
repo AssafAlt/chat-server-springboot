@@ -8,6 +8,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
@@ -16,6 +17,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 @Data
 @Entity
 @NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "friend_requests", uniqueConstraints = {
         @UniqueConstraint(columnNames = { "sender_id", "receiver_id" })
 })
@@ -35,5 +37,13 @@ public class FriendRequest {
     @ManyToOne
     @JoinColumn(name = "receiver_id", nullable = false)
     private UserEntity receiverEntity;
+
+    private String status;
+
+    public FriendRequest(int id, LocalDate date, String status) {
+        this.id = id;
+        this.date = date;
+        this.status = status;
+    }
 
 }
