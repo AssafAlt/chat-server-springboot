@@ -40,7 +40,7 @@ public class FriendshipService {
         friendshipRepository.save(friendship);
     }
 
-    public ResponseEntity<?> getFriendRequests(HttpServletRequest request) {
+    public ResponseEntity<?> getFriends(HttpServletRequest request) {
         try {
 
             Optional<UserEntity> op = userRepository

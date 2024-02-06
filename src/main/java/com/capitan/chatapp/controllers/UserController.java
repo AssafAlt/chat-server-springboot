@@ -35,7 +35,7 @@ public class UserController {
 
     @GetMapping("friends")
     public ResponseEntity<?> getFriends(HttpServletRequest request) {
-        return friendshipService.getFriendRequests(request);
+        return friendshipService.getFriends(request);
 
     }
 
