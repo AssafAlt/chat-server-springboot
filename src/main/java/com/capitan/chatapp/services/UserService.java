@@ -69,6 +69,7 @@ public class UserService {
                 UserEntity currentUser = user.get();
                 LoginResponseDto loginResponseDto = new LoginResponseDto(currentUser.getNickname(),
                         currentUser.getProfileImg(), currentUser.isFirstLogin());
+                userRepository.updateOnlineStatus(loginDto.getUsername(), true);
                 return new ResponseEntity<>(loginResponseDto, HttpStatus.OK);
             } else
                 return new ResponseEntity<>("User wasn't found", HttpStatus.NOT_FOUND);

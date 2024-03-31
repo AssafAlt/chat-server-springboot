@@ -1,30 +1,23 @@
 package com.capitan.chatapp.controllers;
 
 import org.springframework.stereotype.Controller;
-import java.time.Instant;
+
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.context.event.EventListener;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import com.capitan.chatapp.dto.FriendDto;
-import com.capitan.chatapp.models.ConnectedUser;
-import com.capitan.chatapp.models.Message;
-import com.capitan.chatapp.models.MessageType;
 import com.capitan.chatapp.models.UserEntity;
 import com.capitan.chatapp.repository.FriendshipRepository;
 import com.capitan.chatapp.repository.UserRepository;
 import com.capitan.chatapp.security.JwtGenerator;
 import com.capitan.chatapp.services.MemberStore;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 public class ChatController {
@@ -47,33 +40,73 @@ public class ChatController {
     @EventListener
     public void handleSessionConnectEvent(SessionConnectEvent event) {
         try {
+
             StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-            // Retrieve user information from the WebSocket session attributes
+            String username = (jwtGenerator.getUsernameFromJwt(headerAccessor.getFirstNativeHeader("token")));
             Optional<UserEntity> user = userRepository
-                    .findByUsername(jwtGenerator.getUsernameFromJwt(headerAccessor.getFirstNativeHeader("token")));
+                    .findByUsername(username);
             if (user.isPresent()) {
                 UserEntity opUser = user.get();
-                ConnectedUser newUser = new ConnectedUser(opUser.getId().toString(), null, opUser.getNickname());
+                headerAccessor.setSessionId(username);
 
-                // Retrieve the connected friends of the user
-                Optional<List<FriendDto>> friendsOptional = friendshipRepository.getFriends(opUser.getId());
+                // Retrieve the user's online friends
+                Optional<List<FriendDto>> friendsOptional = friendshipRepository.getOnlineFriends(opUser.getId());
+                friendsOptional.ifPresent(friends -> {
+                    List<String> onlineFriendNames = friends.stream()
+                            .map(FriendDto::getNickname)
+                            .collect(Collectors.toList());
 
-                // Store the user and their connected friends in the member store
-                memberStore.addMember(opUser.getUsername(), friendsOptional);
+                    // Send the list of online friends to the user
+                    simpMessagingTemplate.convertAndSendToUser(username, "/queue/onlineFriends",
+                            onlineFriendNames);
 
-                // Send the updated members list to all users
-                // sendMembersList();
-                System.out.println(memberStore.getFriends(opUser.getUsername()));
-
-                // Notify all users about the user joining
-                Message newMessage = new Message(newUser, null, null, MessageType.JOIN, Instant.now());
-                simpMessagingTemplate.convertAndSend("/topic/messages", newMessage);
+                    // Notify each friend about the user's online status
+                    for (FriendDto friendDto : friends) {
+                        Optional<UserEntity> friendEntity = userRepository.findById(friendDto.getId());
+                        friendEntity.ifPresent(friend -> {
+                            simpMessagingTemplate.convertAndSendToUser(friend.getId().toString(),
+                                    "/queue/onlineFriends", opUser.getNickname());
+                        });
+                    }
+                });
             }
-
         } catch (Exception e) {
-            // Handle exception
             e.printStackTrace();
         }
+    }
+
+    @EventListener
+    public void handleSessionDisconnectEvent(SessionDisconnectEvent event) {
+        try {
+            StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+            String username = headerAccessor.getUser().getName();
+            System.out.println(username); // Extract the username from session headers
+            userRepository.updateOnlineStatus(username, false);
+            /*
+             * if (username != null) {
+             * // Notify all of the disconnected user's friends about the change in their
+             * // online status
+             * Optional<UserEntity> disconnectedUserOptional =
+             * userRepository.findByUsername(username);
+             * disconnectedUserOptional.ifPresent(disconnectedUser -> {
+             * Optional<List<UserEntity>> friendsOptional =
+             * userRepository.findById(disconnectedUser.getId())
+             * .map(UserEntity::getFriends);
+             * friendsOptional.ifPresent(friends -> {
+             * for (UserEntity friend : friends) {
+             * simpMessagingTemplate.convertAndSendToUser(friend.getUsername().toString(),
+             * "/queue/onlineFriends", username);
+             * }
+             * });
+             * });
+             * userRepository.updateOnlineStatus(username, false);
+             * }
+             */
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     /*

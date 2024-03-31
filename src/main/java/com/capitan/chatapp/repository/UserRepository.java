@@ -32,6 +32,10 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
          * 
          * @Param("searcherNickname") String searcherNickname);
          */
+        @Modifying
+        @Transactional
+        @Query("UPDATE UserEntity u SET u.isOnline = :isOnline WHERE u.username = :username")
+        void updateOnlineStatus(@Param("username") String username, @Param("isOnline") boolean isOnline);
 
         @Query("SELECT NEW com.capitan.chatapp.dto.SearchUserResponseDto(u.id,u.profileImg, u.nickname) " +
                         "FROM UserEntity u " +
