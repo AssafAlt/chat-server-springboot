@@ -69,7 +69,6 @@ public class UserService {
                 UserEntity currentUser = user.get();
                 LoginResponseDto loginResponseDto = new LoginResponseDto(currentUser.getNickname(),
                         currentUser.getProfileImg(), currentUser.isFirstLogin());
-                userRepository.updateOnlineStatus(loginDto.getUsername(), true);
                 return new ResponseEntity<>(loginResponseDto, HttpStatus.OK);
             } else
                 return new ResponseEntity<>("User wasn't found", HttpStatus.NOT_FOUND);
@@ -108,6 +107,10 @@ public class UserService {
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
+    }
+
+    public void updateOnlineStatus(String username, boolean onlineStatus) {
+        userRepository.updateOnlineStatus(username, onlineStatus);
     }
 
     public ResponseEntity<?> searchUsersByNicknamePrefix(String prefix, HttpServletRequest request) {

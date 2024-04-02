@@ -1,0 +1,17 @@
+package com.capitan.chatapp.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
+public class FriendUpdateDto {
+    private String profileImg;
+    private String nickname;
+    private MessageType messageType;
+
+    public enum MessageType {
+        JOIN,
+        LEAVE
+    }
+}

@@ -39,6 +39,12 @@ public class UserController {
 
     }
 
+    @GetMapping("online-friends")
+    public ResponseEntity<?> getOnlineFriends(HttpServletRequest request) {
+        return friendshipService.getOnlineFriends(request);
+
+    }
+
     @PatchMapping("setting/image")
     public ResponseEntity<?> updateProfileImg(@RequestBody UpdateProfileImgDto profileImgDto,
             HttpServletRequest request) {
