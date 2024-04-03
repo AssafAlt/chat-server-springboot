@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.context.event.EventListener;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -15,9 +16,11 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
+import com.capitan.chatapp.dto.ChatMessageDto;
 import com.capitan.chatapp.dto.FriendDto;
 import com.capitan.chatapp.dto.FriendUpdateDto;
 import com.capitan.chatapp.dto.FriendUpdateDto.MessageType;
+import com.capitan.chatapp.models.ChatMessage;
 import com.capitan.chatapp.models.UserEntity;
 import com.capitan.chatapp.repository.FriendshipRepository;
 import com.capitan.chatapp.repository.UserRepository;
@@ -147,6 +150,12 @@ public class ChatController {
             e.printStackTrace();
         }
 
+    }
+
+    @MessageMapping("/private.{roomName}")
+    public void sendPrivateMessage(@DestinationVariable String roomName, ChatMessage message) {
+        ChatMessageDto newMessage = new ChatMessageDto(message.getSender(), message.getContent(), message.getTime());
+        simpMessagingTemplate.convertAndSend("/topic/private." + roomName, newMessage);
     }
 
     /*

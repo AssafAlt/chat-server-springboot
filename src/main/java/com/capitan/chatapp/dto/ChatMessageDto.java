@@ -1,4 +1,4 @@
-package com.capitan.chatapp.models;
+package com.capitan.chatapp.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,11 +11,9 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ChatMessage {
-    private String room;
+public class ChatMessageDto {
     private String sender;
-    private String recipient;
     private String content;
-    private String date;
     private String time;
+
 }
