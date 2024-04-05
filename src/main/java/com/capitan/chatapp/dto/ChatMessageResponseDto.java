@@ -7,12 +7,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChatMessageDto {
-
-    private String room;
+public class ChatMessageResponseDto {
     private String sender;
-    private String recipient;
     private String content;
     private String date;
     private String time;
+
 }
