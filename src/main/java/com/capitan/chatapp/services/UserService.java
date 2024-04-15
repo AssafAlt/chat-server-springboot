@@ -109,6 +109,10 @@ public class UserService {
         }
     }
 
+    public void updateOnlineStatus(String username, boolean onlineStatus) {
+        userRepository.updateOnlineStatus(username, onlineStatus);
+    }
+
     public ResponseEntity<?> searchUsersByNicknamePrefix(String prefix, HttpServletRequest request) {
         try {
             Optional<UserEntity> op = userRepository

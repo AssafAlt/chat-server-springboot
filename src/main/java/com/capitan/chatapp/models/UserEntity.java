@@ -29,7 +29,7 @@ public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
     @Column(unique = true)
     @NotBlank
@@ -47,10 +47,16 @@ public class UserEntity {
 
     private String profileImg;
 
+    private boolean isOnline;
+
     public UserEntity(int id, String profileImg, String nickname) {
         this.id = id;
         this.nickname = nickname;
         this.profileImg = profileImg;
+    }
+
+    public UserEntity(String username) {
+        this.username = username;
     }
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
@@ -87,5 +93,16 @@ public class UserEntity {
         String encodedNickname = nickNamePrefix + numericUsernamePrefix.toString() + randomNum;
 
         return encodedNickname;
+    }
+
+    public List<UserEntity> getFriends() {
+        List<UserEntity> friends = new ArrayList<>();
+        for (Friendship friendship : friendshipsAsUser1) {
+            friends.add(friendship.getUser2());
+        }
+        for (Friendship friendship : friendshipsAsUser2) {
+            friends.add(friendship.getUser1());
+        }
+        return friends;
     }
 }
