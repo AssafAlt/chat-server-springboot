@@ -75,7 +75,7 @@ public class ChatController {
 
                     // Notify each friend about the user's online status
                     onlineFriendNames.forEach(name -> {
-                        FriendUpdateDto messagePayload = new FriendUpdateDto(opUser.getProfileImg(), nickname,
+                        FriendUpdateDto messagePayload = new FriendUpdateDto(nickname,
                                 MessageType.JOIN);
 
                         simpMessagingTemplate.convertAndSendToUser(name, "/queue/onlineFriends", messagePayload);
@@ -110,7 +110,7 @@ public class ChatController {
 
                     // Notify each friend about the user's online status
                     onlineFriendNames.forEach(name -> {
-                        FriendUpdateDto messagePayload = new FriendUpdateDto(opUser.getProfileImg(), nickname,
+                        FriendUpdateDto messagePayload = new FriendUpdateDto(nickname,
                                 MessageType.LEAVE);
 
                         simpMessagingTemplate.convertAndSendToUser(name, "/queue/onlineFriends", messagePayload);
