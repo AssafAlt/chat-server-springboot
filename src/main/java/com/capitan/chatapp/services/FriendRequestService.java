@@ -6,15 +6,19 @@ import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import com.capitan.chatapp.dto.FriendIsOnlineDto;
 import com.capitan.chatapp.dto.FriendRequestDto;
 import com.capitan.chatapp.dto.FriendRequestOpDto;
 import com.capitan.chatapp.dto.GetFriendRequestDto;
+import com.capitan.chatapp.dto.FriendUpdateDto.MessageType;
 import com.capitan.chatapp.models.FriendRequest;
 import com.capitan.chatapp.models.Friendship;
+import com.capitan.chatapp.models.Notification;
 import com.capitan.chatapp.models.UserEntity;
 import com.capitan.chatapp.repository.FriendRequestRepository;
 import com.capitan.chatapp.repository.FriendshipRepository;
@@ -31,16 +35,18 @@ public class FriendRequestService {
     private UserRepository userRepository;
     private FriendshipRepository friendshipRepository;
     private JwtGenerator jwtGenerator;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     public FriendRequestService(
             FriendRequestRepository friendRequestsRepository,
             UserRepository userRepository,
             FriendshipRepository friendshipRepository,
-            JwtGenerator jwtGenerator) {
+            JwtGenerator jwtGenerator, SimpMessagingTemplate simpMessagingTemplate) {
         this.friendRequestsRepository = friendRequestsRepository;
         this.userRepository = userRepository;
         this.friendshipRepository = friendshipRepository;
         this.jwtGenerator = jwtGenerator;
+        this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
     public ResponseEntity<String> sendFriendRequest(@RequestBody FriendRequestDto friendRequestDto,
@@ -125,6 +131,17 @@ public class FriendRequestService {
                     friendship.setUser2(opUser);
                     friendshipRepository.save(friendship);
                     friendRequestsRepository.updateStatusById(friendRequestId, "CONFIRMED");
+                    Boolean isUserOnline = userRepository.isUserOnline(senderUser.getId());
+                    if (isUserOnline) {
+                        FriendIsOnlineDto friend = new FriendIsOnlineDto(opUser.getProfileImg(), opUser.getNickname(),
+                                true);
+                        Notification notification = new Notification(
+                                opUser.getNickname() + " Approved your friend request!",
+                                com.capitan.chatapp.models.MessageType.REQUEST_APPROVED, friend);
+                        simpMessagingTemplate.convertAndSendToUser(senderUser.getNickname(), "/queue/notifications",
+                                notification);
+                    }
+
                     return new ResponseEntity<>("Request was confirmed successfully", HttpStatus.OK);
                 } else {
                     return new ResponseEntity<>("User unauthorized for this operation", HttpStatus.UNAUTHORIZED);
