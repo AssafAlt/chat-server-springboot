@@ -70,6 +70,18 @@ public class FriendRequestService {
                 friendRequest.setStatus("PENDING");
 
                 friendRequestsRepository.save(friendRequest);
+                Boolean isUserOnline = userRepository.isUserOnline(recieverUser.getId());
+                if (isUserOnline) {
+                    GetFriendRequestDto fRequest = friendRequestsRepository.getOnlineFriendRequestDetailsByReceiverId(
+                            recieverUser.getId(),
+                            senderUser.getId());
+
+                    Notification notification = new Notification(
+                            senderUser.getNickname() + " Sent you a friend request!",
+                            com.capitan.chatapp.models.MessageType.NEW_FRIEND_REQUEST, fRequest);
+                    simpMessagingTemplate.convertAndSendToUser(recieverUser.getNickname(), "/queue/notifications",
+                            notification);
+                }
                 return new ResponseEntity<>("Request was sent successfully", HttpStatus.OK);
             } else {
                 return new ResponseEntity<>("Request was failed!", HttpStatus.BAD_REQUEST);

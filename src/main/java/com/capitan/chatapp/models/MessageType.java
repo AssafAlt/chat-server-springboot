@@ -5,5 +5,6 @@ public enum MessageType {
     CHAT,
     LEAVE,
     NEW_MESSAGE, NEW_PRIVATE_MESSAGE,
+    NEW_FRIEND_REQUEST,
     REQUEST_APPROVED
 }
