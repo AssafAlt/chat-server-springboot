@@ -15,7 +15,6 @@ import com.capitan.chatapp.dto.FriendIsOnlineDto;
 import com.capitan.chatapp.dto.FriendRequestDto;
 import com.capitan.chatapp.dto.FriendRequestOpDto;
 import com.capitan.chatapp.dto.GetFriendRequestDto;
-import com.capitan.chatapp.dto.FriendUpdateDto.MessageType;
 import com.capitan.chatapp.models.FriendRequest;
 import com.capitan.chatapp.models.Friendship;
 import com.capitan.chatapp.models.Notification;
