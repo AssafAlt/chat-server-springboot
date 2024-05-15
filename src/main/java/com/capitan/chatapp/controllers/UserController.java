@@ -1,6 +1,7 @@
 package com.capitan.chatapp.controllers;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +24,11 @@ public class UserController {
     public UserController(UserService userService, FriendshipService friendshipService) {
         this.userService = userService;
         this.friendshipService = friendshipService;
+    }
+
+    @DeleteMapping("delete-user")
+    public ResponseEntity<?> deleteUserByUsernameAndPassword(HttpServletRequest request, String password) {
+        return userService.deleteUserByUsernameAndPassword(request, password);
     }
 
     @GetMapping("search")

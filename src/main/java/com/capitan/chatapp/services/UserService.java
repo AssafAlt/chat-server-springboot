@@ -114,6 +114,23 @@ public class UserService {
         userRepository.updateOnlineStatus(username, onlineStatus);
     }
 
+    public ResponseEntity<?> deleteUserByUsernameAndPassword(HttpServletRequest request, String password) {
+        try {
+            Optional<UserEntity> op = userRepository
+                    .findByUsername(jwtGenerator.getUserNameFromJWTCookies(request));
+            if (op.isPresent()) {
+                String usernameToDelete = op.get().getUsername();
+                userRepository.deleteUserByUsernameAndPassword(usernameToDelete, password);
+                return new ResponseEntity<>("User deleted successfully!", HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+            }
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
     public ResponseEntity<?> searchUsersByNicknamePrefix(String prefix, HttpServletRequest request) {
         try {
             Optional<UserEntity> op = userRepository
