@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.capitan.chatapp.dto.SearchUserResponseDto;
+import com.capitan.chatapp.dto.FriendIsOnlineDto;
 import com.capitan.chatapp.models.UserEntity;
 
 import jakarta.transaction.Transactional;
@@ -17,6 +18,14 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
         Optional<UserEntity> findByUsername(String username);
 
         Optional<UserEntity> findByNickname(String nickname);
+
+        @Query("SELECT NEW com.capitan.chatapp.dto.FriendIsOnlineDto(u.profileImg, u.nickname, u.isOnline) " +
+                        "FROM UserEntity u " +
+                        "WHERE u.nickname = :nickname")
+        FriendIsOnlineDto isFriendOnline(@Param("nickname") String nickname);
+
+        @Query("SELECT u.isOnline FROM UserEntity u WHERE u.id = :id")
+        Boolean isUserOnline(@Param("id") Integer id);
 
         @Query("SELECT u.id FROM UserEntity u WHERE u.username = :username")
         Optional<Integer> findUserIdByUsername(@Param("username") String username);

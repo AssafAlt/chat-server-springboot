@@ -34,7 +34,6 @@ public class JwtGenerator {
         Cookie cookie = new Cookie("jwt_token", token);
         cookie.setMaxAge((int) SecurityConstants.JWT_EXPIRATION / 1000);
         cookie.setDomain("localhost");
-        cookie.setSecure(false);
         cookie.setPath("/");
 
         return cookie;

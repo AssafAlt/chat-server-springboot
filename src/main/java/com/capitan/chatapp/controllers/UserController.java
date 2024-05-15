@@ -33,6 +33,13 @@ public class UserController {
 
     }
 
+    @GetMapping("online-check")
+    public ResponseEntity<?> checkIsFriendOnline(
+            @RequestParam String nickname) {
+        return userService.checkIsFriendOnlineByNickname(nickname);
+
+    }
+
     @GetMapping("friends")
     public ResponseEntity<?> getFriends(HttpServletRequest request) {
         return friendshipService.getFriends(request);

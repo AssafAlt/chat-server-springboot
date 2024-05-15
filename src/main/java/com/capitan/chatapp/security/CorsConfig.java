@@ -14,7 +14,8 @@ public class CorsConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.setAllowedOrigins(Arrays.asList("http://localhost:3000")); // Add your frontend origin
+        corsConfig.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+        // frontend origin
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")); // Add PATCH
                                                                                                          // method
         corsConfig.setAllowedHeaders(Arrays.asList("*"));

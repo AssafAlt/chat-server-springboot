@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,7 @@ import com.capitan.chatapp.models.Conversation;
 import com.capitan.chatapp.repository.ChatRepository;
 import com.capitan.chatapp.repository.ConversationRepository;
 import com.capitan.chatapp.dto.ChatMessageResponseDto;
+import com.capitan.chatapp.dto.MessagesHistoryResponseDto;
 
 @Service
 public class ChatService {
@@ -59,13 +61,18 @@ public class ChatService {
 
     public ResponseEntity<?> getMessagesHistoryByPaginating(String roomName, int pageNumber) {
         try {
-            Pageable pageable = PageRequest.of(pageNumber, 10); //
-            Optional<List<ChatMessageResponseDto>> optionalMessages = conversationRepository
+            int pageSize = 10;
+            Pageable pageable = PageRequest.of(pageNumber, pageSize);
+            Page<ChatMessageResponseDto> messagesPage = conversationRepository
                     .findLastTenMessagesByConversationRoomName(roomName, pageable);
-            if (!optionalMessages.isPresent()) {
+
+            if (messagesPage.isEmpty()) {
                 return new ResponseEntity<>("No messages history", HttpStatus.NOT_FOUND);
             } else {
-                List<ChatMessageResponseDto> messages = optionalMessages.get();
+                int totalPages = messagesPage.getTotalPages();
+                int currentPage = messagesPage.getNumber();
+                Boolean hasNext = messagesPage.hasNext();
+                List<ChatMessageResponseDto> messages = messagesPage.getContent();
                 Map<String, List<ChatMessageResponseDto>> messagesByDate = new LinkedHashMap<>();
 
                 // Group messages by date
@@ -73,11 +80,12 @@ public class ChatService {
                     String date = message.getDate();
                     messagesByDate.computeIfAbsent(date, k -> new ArrayList<>()).add(message);
                 }
-                if (messages.size() < 10) {
-                    return new ResponseEntity<>(messagesByDate, HttpStatus.PARTIAL_CONTENT);
-                } else {
-                    return new ResponseEntity<>(messagesByDate, HttpStatus.OK);
-                }
+
+                MessagesHistoryResponseDto messagesHistoryResponse = new MessagesHistoryResponseDto(totalPages,
+                        currentPage, messagesByDate, hasNext);
+
+                return new ResponseEntity<>(messagesHistoryResponse, HttpStatus.OK);
+
             }
 
         } catch (Exception e) {
