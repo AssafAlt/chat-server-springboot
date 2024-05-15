@@ -17,7 +17,6 @@ import com.capitan.chatapp.repository.FriendshipRepository;
 import com.capitan.chatapp.repository.UserRepository;
 import com.capitan.chatapp.security.JwtGenerator;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
 @Service
@@ -46,7 +45,7 @@ public class FriendshipService {
         try {
 
             Optional<UserEntity> op = userRepository
-                    .findByUsername(jwtGenerator.getUsernameFromJwt(getJWTFromCookies(request)));
+                    .findByUsername(jwtGenerator.getUserNameFromJWTCookies(request));
             if (op.isPresent()) {
                 UserEntity opUser = op.get();
                 Optional<List<FriendDto>> friends = friendshipRepository
@@ -74,7 +73,7 @@ public class FriendshipService {
         try {
 
             Optional<UserEntity> op = userRepository
-                    .findByUsername(jwtGenerator.getUsernameFromJwt(getJWTFromCookies(request)));
+                    .findByUsername(jwtGenerator.getUserNameFromJWTCookies(request));
             if (op.isPresent()) {
                 UserEntity opUser = op.get();
                 Optional<List<FriendDto>> friends = friendshipRepository
@@ -101,7 +100,7 @@ public class FriendshipService {
     public ResponseEntity<?> getFriendsWithStatus(HttpServletRequest request) {
         try {
             Optional<UserEntity> op = userRepository
-                    .findByUsername(jwtGenerator.getUsernameFromJwt(getJWTFromCookies(request)));
+                    .findByUsername(jwtGenerator.getUserNameFromJWTCookies(request));
             if (op.isPresent()) {
                 UserEntity opUser = op.get();
                 Optional<List<FriendDto>> optionalFriends = friendshipRepository.getFriendsWithStatus(opUser.getId());
@@ -134,15 +133,4 @@ public class FriendshipService {
         }
     }
 
-    private String getJWTFromCookies(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("jwt_token".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
-    }
 }

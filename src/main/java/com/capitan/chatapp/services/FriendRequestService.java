@@ -24,7 +24,6 @@ import com.capitan.chatapp.repository.FriendshipRepository;
 import com.capitan.chatapp.repository.UserRepository;
 import com.capitan.chatapp.security.JwtGenerator;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
 @Service
@@ -52,7 +51,7 @@ public class FriendRequestService {
             HttpServletRequest request) {
         try {
             Optional<UserEntity> sender = userRepository
-                    .findByUsername(jwtGenerator.getUsernameFromJwt(getJWTFromCookies(request)));
+                    .findByUsername(jwtGenerator.getUserNameFromJWTCookies(request));
 
             Optional<UserEntity> reciever = userRepository.findById(friendRequestDto.getRecieverId());
 
@@ -96,7 +95,7 @@ public class FriendRequestService {
         try {
             int friendRequestIdToDelete = friendRequestOpDto.getFriendRequestId();
             Optional<UserEntity> op = userRepository
-                    .findByUsername(jwtGenerator.getUsernameFromJwt(getJWTFromCookies(request)));
+                    .findByUsername(jwtGenerator.getUserNameFromJWTCookies(request));
             Optional<FriendRequest> fRequest = friendRequestsRepository.findById(friendRequestIdToDelete);
 
             if (op.isPresent() && fRequest.isPresent()) {
@@ -129,7 +128,7 @@ public class FriendRequestService {
             int friendRequestId = friendRequestOpDto.getFriendRequestId();
             Friendship friendship = new Friendship();
             Optional<UserEntity> op = userRepository
-                    .findByUsername(jwtGenerator.getUsernameFromJwt(getJWTFromCookies(request)));
+                    .findByUsername(jwtGenerator.getUserNameFromJWTCookies(request));
             Optional<FriendRequest> fRequest = friendRequestsRepository.findById(friendRequestId);
 
             if (op.isPresent() && fRequest.isPresent()) {
@@ -173,7 +172,7 @@ public class FriendRequestService {
         try {
 
             Optional<UserEntity> op = userRepository
-                    .findByUsername(jwtGenerator.getUsernameFromJwt(getJWTFromCookies(request)));
+                    .findByUsername(jwtGenerator.getUserNameFromJWTCookies(request));
             if (op.isPresent()) {
                 UserEntity opUser = op.get();
                 Optional<List<GetFriendRequestDto>> frequests = friendRequestsRepository
@@ -197,15 +196,4 @@ public class FriendRequestService {
         }
     }
 
-    private String getJWTFromCookies(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("jwt_token".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
-    }
 }

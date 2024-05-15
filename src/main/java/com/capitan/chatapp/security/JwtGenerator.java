@@ -10,6 +10,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Component
 public class JwtGenerator {
@@ -59,4 +60,21 @@ public class JwtGenerator {
             throw new AuthenticationCredentialsNotFoundException("JWT is expired or incorrect!");
         }
     }
+
+    private String getJWTFromCookies(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("jwt_token".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
+    public String getUserNameFromJWTCookies(HttpServletRequest request) {
+        return getUsernameFromJwt(getJWTFromCookies(request));
+    }
+
 }

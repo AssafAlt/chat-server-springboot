@@ -117,7 +117,7 @@ public class UserService {
     public ResponseEntity<?> searchUsersByNicknamePrefix(String prefix, HttpServletRequest request) {
         try {
             Optional<UserEntity> op = userRepository
-                    .findByUsername(jwtGenerator.getUsernameFromJwt(getJWTFromCookies(request)));
+                    .findByUsername(jwtGenerator.getUserNameFromJWTCookies(request));
             if (op.isPresent()) {
                 String searcherNickname = op.get().getNickname();
                 Optional<List<SearchUserResponseDto>> searchedUsers = userRepository
@@ -149,7 +149,7 @@ public class UserService {
 
     public ResponseEntity<?> updateProfileImage(UpdateProfileImgDto profileImgDto, HttpServletRequest request) {
         try {
-            String opUsername = jwtGenerator.getUsernameFromJwt(getJWTFromCookies(request));
+            String opUsername = jwtGenerator.getUserNameFromJWTCookies(request);
             if (userRepository.existsByUsername(opUsername)) {
                 userRepository.updateProfileImage(opUsername, profileImgDto.getImagePath(), false);
                 UpdateProfileResponseDto responseDto = new UpdateProfileResponseDto(profileImgDto.getImagePath(),
@@ -169,7 +169,7 @@ public class UserService {
 
     public ResponseEntity<?> updateProfileFirstLogin(HttpServletRequest request) {
         try {
-            String opUsername = jwtGenerator.getUsernameFromJwt(getJWTFromCookies(request));
+            String opUsername = jwtGenerator.getUserNameFromJWTCookies(request);
             if (userRepository.existsByUsername(opUsername)) {
                 userRepository.updateProfileFirstLogin(opUsername, false);
                 UpdateFirstLoginResponseDto responseDto = new UpdateFirstLoginResponseDto(false);
@@ -204,18 +204,6 @@ public class UserService {
 
     public Boolean existsByNickname(String nickname) {
         return userRepository.existsByNickname(nickname);
-    }
-
-    private String getJWTFromCookies(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("jwt_token".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
     }
 
 }
