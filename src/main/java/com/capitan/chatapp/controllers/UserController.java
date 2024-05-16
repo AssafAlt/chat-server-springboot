@@ -27,8 +27,8 @@ public class UserController {
     }
 
     @DeleteMapping("delete-user")
-    public ResponseEntity<?> deleteUserByUsernameAndPassword(HttpServletRequest request, String password) {
-        return userService.deleteUserByUsernameAndPassword(request, password);
+    public ResponseEntity<?> deleteUserByUsernameAndPassword(HttpServletRequest request) {
+        return userService.deleteUserByUsername(request);
     }
 
     @GetMapping("search")

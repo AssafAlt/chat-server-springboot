@@ -21,8 +21,8 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
 
         @Modifying
         @Transactional
-        @Query("DELETE FROM UserEntity u WHERE u.username = :username AND u.password = :password")
-        void deleteUserByUsernameAndPassword(@Param("username") String username, @Param("password") String password);
+        @Query("DELETE FROM UserEntity u WHERE u.username = :username")
+        void deleteUserByUsername(@Param("username") String username);
 
         @Query("SELECT NEW com.capitan.chatapp.dto.FriendIsOnlineDto(u.profileImg, u.nickname, u.isOnline) " +
                         "FROM UserEntity u " +
