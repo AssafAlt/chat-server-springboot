@@ -62,9 +62,10 @@ public class ChatController {
     @MessageMapping("/private.{roomName}")
     public void sendPrivateMessage(@DestinationVariable String roomName, ChatMessageDto message) {
         try {
-            chatService.saveMessage(message);
+            Long messageId = chatService.saveMessage(message);
 
-            ChatMessageResponseDto newMessage = new ChatMessageResponseDto(message.getSender(), message.getContent(),
+            ChatMessageResponseDto newMessage = new ChatMessageResponseDto(messageId, message.getSender(),
+                    message.getContent(),
                     message.getDate(),
                     message.getTime());
             simpMessagingTemplate.convertAndSend("/topic/private." + roomName, newMessage);
@@ -72,6 +73,17 @@ public class ChatController {
             System.out.println(e);
         }
 
+    }
+
+    @MessageMapping("/delete.private.{roomName}")
+    public void deletePrivateMessage(@DestinationVariable String roomName, String messageId) {
+        try {
+            Long messageIdToDelete = Long.valueOf(messageId);
+            chatService.deleteChatMessageById(messageIdToDelete);
+            simpMessagingTemplate.convertAndSend("/topic/delete.private." + roomName, messageIdToDelete);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
     }
 
 }

@@ -86,7 +86,7 @@ public class ChatService {
         }
     }
 
-    public void saveMessage(ChatMessageDto chatMessageDto) {
+    public Long saveMessage(ChatMessageDto chatMessageDto) {
         try {
             Optional<Conversation> optionalConversation = conversationRepository.findById(chatMessageDto.getRoom());
 
@@ -95,21 +95,26 @@ public class ChatService {
                 ChatMessage newChatMessage = new ChatMessage(conversation, chatMessageDto.getSender(),
                         chatMessageDto.getRecipient(), chatMessageDto.getContent(), chatMessageDto.getDate(),
                         chatMessageDto.getTime());
-                chatRepository.save(newChatMessage);
+                return chatRepository.saveAndReturnId(newChatMessage);
             } else {
                 Conversation newConversation = new Conversation(chatMessageDto.getRoom());
                 conversationRepository.save(newConversation);
                 ChatMessage newChatMessage = new ChatMessage(newConversation, chatMessageDto.getSender(),
                         chatMessageDto.getRecipient(), chatMessageDto.getContent(), chatMessageDto.getDate(),
                         chatMessageDto.getTime());
-                chatRepository.save(newChatMessage);
+                return chatRepository.saveAndReturnId(newChatMessage);
 
             }
         } catch (Exception e) {
             System.out.println(e);
 
         }
+        return null;
 
+    }
+
+    public void deleteChatMessageById(Long id) {
+        chatRepository.deleteById(id);
     }
 
     public ResponseEntity<?> getMessagesHistoryByPaginating(String roomName, int pageNumber) {

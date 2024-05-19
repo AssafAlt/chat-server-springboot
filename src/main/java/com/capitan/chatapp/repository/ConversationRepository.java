@@ -10,7 +10,7 @@ import com.capitan.chatapp.models.Conversation;
 
 public interface ConversationRepository extends JpaRepository<Conversation, String> {
 
-    @Query("SELECT NEW com.capitan.chatapp.dto.ChatMessageResponseDto(cm.sender, cm.content, cm.date, cm.time) FROM ChatMessage cm WHERE cm.conversation.roomName = :roomName ORDER BY cm.id DESC")
+    @Query("SELECT NEW com.capitan.chatapp.dto.ChatMessageResponseDto(cm.id,cm.sender, cm.content, cm.date, cm.time) FROM ChatMessage cm WHERE cm.conversation.roomName = :roomName ORDER BY cm.id DESC")
     Page<ChatMessageResponseDto> findLastTenMessagesByConversationRoomName(@Param("roomName") String roomName,
             Pageable pageable);
 }
