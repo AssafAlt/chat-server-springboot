@@ -113,8 +113,14 @@ public class ChatService {
 
     }
 
-    public void deleteChatMessageById(Long id) {
-        chatRepository.deleteById(id);
+    public void deleteChatMessageById(Long id, String roomName) {
+        try {
+            chatRepository.deleteById(id);
+            simpMessagingTemplate.convertAndSend("/topic/delete.private." + roomName, id);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
     }
 
     public ResponseEntity<?> getMessagesHistoryByPaginating(String roomName, int pageNumber) {

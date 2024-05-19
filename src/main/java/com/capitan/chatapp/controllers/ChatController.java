@@ -79,8 +79,8 @@ public class ChatController {
     public void deletePrivateMessage(@DestinationVariable String roomName, String messageId) {
         try {
             Long messageIdToDelete = Long.valueOf(messageId);
-            chatService.deleteChatMessageById(messageIdToDelete);
-            simpMessagingTemplate.convertAndSend("/topic/delete.private." + roomName, messageIdToDelete);
+            chatService.deleteChatMessageById(messageIdToDelete, roomName);
+
         } catch (Exception e) {
             System.out.println(e);
         }
