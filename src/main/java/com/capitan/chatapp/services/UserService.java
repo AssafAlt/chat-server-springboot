@@ -2,6 +2,7 @@ package com.capitan.chatapp.services;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +24,7 @@ import com.capitan.chatapp.dto.SearchUserResponseDto;
 import com.capitan.chatapp.dto.UpdateFirstLoginResponseDto;
 import com.capitan.chatapp.dto.UpdateProfileImgDto;
 import com.capitan.chatapp.dto.UpdateProfileResponseDto;
+import com.capitan.chatapp.models.FriendRequest;
 import com.capitan.chatapp.models.Role;
 import com.capitan.chatapp.models.UserEntity;
 import com.capitan.chatapp.repository.RoleRepository;
@@ -32,6 +34,7 @@ import org.springframework.security.core.Authentication;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -131,30 +134,6 @@ public class UserService {
         }
     }
 
-    public ResponseEntity<?> searchUsersByNicknamePrefix(String prefix, HttpServletRequest request) {
-        try {
-            Optional<UserEntity> op = userRepository
-                    .findByUsername(jwtGenerator.getUserNameFromJWTCookies(request));
-            if (op.isPresent()) {
-                String searcherNickname = op.get().getNickname();
-                Optional<List<SearchUserResponseDto>> searchedUsers = userRepository
-                        .findByNicknamePrefix("%" + prefix + "%", searcherNickname);
-
-                if (searchedUsers.isPresent()) {
-
-                    return new ResponseEntity<>(searchedUsers.get(), HttpStatus.OK);
-                } else {
-                    return new ResponseEntity<>("There is no matching result", HttpStatus.OK);
-                }
-
-            } else {
-                return new ResponseEntity<>("Unauthorized operation", HttpStatus.UNAUTHORIZED);
-            }
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-    }
-
     public ResponseEntity<?> checkIsFriendOnlineByNickname(String nickname) {
         try {
             FriendIsOnlineDto friendIsOnlineDto = userRepository.isFriendOnline(nickname);
@@ -221,6 +200,100 @@ public class UserService {
 
     public Boolean existsByNickname(String nickname) {
         return userRepository.existsByNickname(nickname);
+    }
+
+    /*
+     * public ResponseEntity<?> searchUsersByNicknamePrefix(String prefix,
+     * HttpServletRequest request) {
+     * try {
+     * Optional<UserEntity> op = userRepository
+     * .findByUsername(jwtGenerator.getUserNameFromJWTCookies(request));
+     * if (op.isPresent()) {
+     * String searcherNickname = op.get().getNickname();
+     * Optional<List<SearchUserResponseDto>> searchedUsers = userRepository
+     * .findByNicknamePrefix("%" + prefix + "%", searcherNickname);
+     * 
+     * if (searchedUsers.isPresent()) {
+     * 
+     * return new ResponseEntity<>(searchedUsers.get(), HttpStatus.OK);
+     * } else {
+     * return new ResponseEntity<>("There is no matching result", HttpStatus.OK);
+     * }
+     * 
+     * } else {
+     * return new ResponseEntity<>("Unauthorized operation",
+     * HttpStatus.UNAUTHORIZED);
+     * }
+     * } catch (Exception e) {
+     * return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+     * }
+     * }
+     */
+
+    public ResponseEntity<?> searchUsersByNicknamePrefix(String prefix, HttpServletRequest request) {
+        try {
+            Optional<UserEntity> op = userRepository
+                    .findByUsername(jwtGenerator.getUserNameFromJWTCookies(request));
+            if (op.isPresent()) {
+                String searcherNickname = op.get().getNickname();
+                Integer searcherId = op.get().getId();
+                Optional<List<SearchUserResponseDto>> searchedUsers = userRepository
+                        .findByNicknamePrefix("%" + prefix + "%", searcherNickname);
+
+                if (searchedUsers.isPresent()) {
+                    List<SearchUserResponseDto> responseDtos = searchedUsers.get().stream().map(dto -> {
+                        UserEntity user = userRepository.findById(dto.getUserId()).orElse(null);
+                        if (user == null) {
+                            return null;
+                        }
+                        String friendshipStatus = "NOT_FRIENDS";
+                        Integer friendRequestId = null;
+                        for (FriendRequest sentRequest : user.getSentFriendRequests()) {
+                            if (sentRequest.getReceiverEntity().getId().equals(searcherId)) {
+                                friendRequestId = sentRequest.getId();
+                                if (sentRequest.getStatus().equals("CONFIRMED")) {
+                                    friendshipStatus = "FRIENDS";
+                                } else {
+                                    friendshipStatus = "PENDING";
+                                }
+                                break;
+                            } else if (sentRequest.getSenderEntity().getId().equals(searcherId)) {
+                                friendRequestId = sentRequest.getId();
+                                if (sentRequest.getStatus().equals("CONFIRMED")) {
+                                    friendshipStatus = "FRIENDS";
+                                } else {
+                                    friendshipStatus = "WAITING";
+                                }
+                                break;
+                            }
+                        }
+                        for (FriendRequest receivedRequest : user.getReceivedFriendRequests()) {
+                            if (receivedRequest.getSenderEntity().getId().equals(searcherId)) {
+                                friendRequestId = receivedRequest.getId();
+                                if (receivedRequest.getStatus().equals("CONFIRMED")) {
+                                    friendshipStatus = "FRIENDS";
+                                } else {
+                                    friendshipStatus = "WAITING";
+                                }
+                                break;
+                            }
+                        }
+                        dto.setStatus(friendshipStatus);
+                        dto.setRequestId(friendRequestId);
+                        return dto;
+                    }).filter(Objects::nonNull).collect(Collectors.toList());
+
+                    return new ResponseEntity<>(responseDtos, HttpStatus.OK);
+                } else {
+                    return new ResponseEntity<>("There is no matching result", HttpStatus.OK);
+                }
+
+            } else {
+                return new ResponseEntity<>("Unauthorized operation", HttpStatus.UNAUTHORIZED);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
 
 }
