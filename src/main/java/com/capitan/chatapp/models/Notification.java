@@ -11,6 +11,7 @@ public class Notification {
     private MessageType messageType;
     private FriendIsOnlineDto friend;
     private GetFriendRequestDto fRequest;
+    private Integer requestId;
 
     public Notification(String message, MessageType messageType, FriendIsOnlineDto friend) {
         this.message = message;
@@ -22,6 +23,12 @@ public class Notification {
         this.message = message;
         this.messageType = messageType;
         this.fRequest = fRequest;
+    }
+
+    public Notification(String message, MessageType messageType, Integer requestId) {
+        this.message = message;
+        this.messageType = messageType;
+        this.requestId = requestId;
     }
 
 }

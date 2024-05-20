@@ -104,6 +104,17 @@ public class FriendRequestService {
                 if (opUser.getId() == friendRequest.getSenderEntity().getId()
                         || opUser.getId() == friendRequest.getReceiverEntity().getId()) {
                     friendRequestsRepository.deleteById(friendRequestIdToDelete);
+                    UserEntity recieverUser = friendRequest.getReceiverEntity();
+                    int recieverId = recieverUser.getId();
+                    Boolean isUserOnline = userRepository.isUserOnline(recieverId);
+                    if (isUserOnline && recieverId != opUser.getId()) {
+
+                        Notification notification = new Notification(
+                                "",
+                                com.capitan.chatapp.models.MessageType.REQUEST_CANCELLED, friendRequest.getId());
+                        simpMessagingTemplate.convertAndSendToUser(recieverUser.getNickname(), "/queue/notifications",
+                                notification);
+                    }
                     return new ResponseEntity<>("Request was deleted successfully", HttpStatus.OK);
                 } else {
                     return new ResponseEntity<>("User unauthorized for this operation", HttpStatus.UNAUTHORIZED);
