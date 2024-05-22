@@ -10,7 +10,7 @@ public class SearchUserResponseDto {
     private String profileImg;
     private String nickname;
     private String status;
-    private int requestId;
+    private Integer requestId;
 
     public SearchUserResponseDto(int userId, String profileImg, String nickname) {
         this.userId = userId;
