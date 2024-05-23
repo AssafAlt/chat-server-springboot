@@ -41,7 +41,7 @@ public class SecurityConfig {
                 .exceptionHandling(handling -> handling.authenticationEntryPoint(authEntryPoint))
                 .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeRequests(requests -> requests
-                        .requestMatchers("/api/auth/**", "/", "/blue.png", "/assets/**", "/static/**", "/index.html")
+                        .requestMatchers("/api/auth/**")
                         .permitAll().anyRequest()
                         .authenticated())
                 .httpBasic(withDefaults())
