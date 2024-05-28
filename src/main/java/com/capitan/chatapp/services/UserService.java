@@ -24,7 +24,8 @@ import com.capitan.chatapp.dto.SearchUserResponseDto;
 import com.capitan.chatapp.dto.UpdateFirstLoginResponseDto;
 import com.capitan.chatapp.dto.UpdateProfileImgDto;
 import com.capitan.chatapp.dto.UpdateProfileResponseDto;
-import com.capitan.chatapp.models.FriendRequest;
+import com.capitan.chatapp.models.Friendship;
+import com.capitan.chatapp.models.FriendshiptStatus;
 import com.capitan.chatapp.models.Role;
 import com.capitan.chatapp.models.UserEntity;
 import com.capitan.chatapp.repository.RoleRepository;
@@ -109,6 +110,7 @@ public class UserService {
             }
 
         } catch (Exception e) {
+            System.out.println(e);
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
@@ -202,34 +204,6 @@ public class UserService {
         return userRepository.existsByNickname(nickname);
     }
 
-    /*
-     * public ResponseEntity<?> searchUsersByNicknamePrefix(String prefix,
-     * HttpServletRequest request) {
-     * try {
-     * Optional<UserEntity> op = userRepository
-     * .findByUsername(jwtGenerator.getUserNameFromJWTCookies(request));
-     * if (op.isPresent()) {
-     * String searcherNickname = op.get().getNickname();
-     * Optional<List<SearchUserResponseDto>> searchedUsers = userRepository
-     * .findByNicknamePrefix("%" + prefix + "%", searcherNickname);
-     * 
-     * if (searchedUsers.isPresent()) {
-     * 
-     * return new ResponseEntity<>(searchedUsers.get(), HttpStatus.OK);
-     * } else {
-     * return new ResponseEntity<>("There is no matching result", HttpStatus.OK);
-     * }
-     * 
-     * } else {
-     * return new ResponseEntity<>("Unauthorized operation",
-     * HttpStatus.UNAUTHORIZED);
-     * }
-     * } catch (Exception e) {
-     * return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-     * }
-     * }
-     */
-
     public ResponseEntity<?> searchUsersByNicknamePrefix(String prefix, HttpServletRequest request) {
         try {
             Optional<UserEntity> op = userRepository
@@ -246,34 +220,34 @@ public class UserService {
                         if (user == null) {
                             return null;
                         }
-                        String friendshipStatus = "NOT_FRIENDS";
+                        FriendshiptStatus friendshipStatus = FriendshiptStatus.NOT_FRIENDS;
                         Integer friendRequestId = null;
-                        for (FriendRequest sentRequest : user.getSentFriendRequests()) {
+                        for (Friendship sentRequest : user.getFriendshipsAsSender()) {
                             if (sentRequest.getReceiverEntity().getId().equals(searcherId)) {
                                 friendRequestId = sentRequest.getId();
-                                if (sentRequest.getStatus().equals("CONFIRMED")) {
-                                    friendshipStatus = "FRIENDS";
+                                if (sentRequest.getStatus().equals(FriendshiptStatus.FRIENDS)) {
+                                    friendshipStatus = FriendshiptStatus.FRIENDS;
                                 } else {
-                                    friendshipStatus = "PENDING";
+                                    friendshipStatus = FriendshiptStatus.PENDING;
                                 }
                                 break;
                             } else if (sentRequest.getSenderEntity().getId().equals(searcherId)) {
                                 friendRequestId = sentRequest.getId();
-                                if (sentRequest.getStatus().equals("CONFIRMED")) {
-                                    friendshipStatus = "FRIENDS";
+                                if (sentRequest.getStatus().equals(FriendshiptStatus.FRIENDS)) {
+                                    friendshipStatus = FriendshiptStatus.FRIENDS;
                                 } else {
-                                    friendshipStatus = "WAITING";
+                                    friendshipStatus = FriendshiptStatus.WAITING;
                                 }
                                 break;
                             }
                         }
-                        for (FriendRequest receivedRequest : user.getReceivedFriendRequests()) {
+                        for (Friendship receivedRequest : user.getFriendshipsAsReciever()) {
                             if (receivedRequest.getSenderEntity().getId().equals(searcherId)) {
                                 friendRequestId = receivedRequest.getId();
-                                if (receivedRequest.getStatus().equals("CONFIRMED")) {
-                                    friendshipStatus = "FRIENDS";
+                                if (receivedRequest.getStatus().equals(FriendshiptStatus.FRIENDS)) {
+                                    friendshipStatus = FriendshiptStatus.FRIENDS;
                                 } else {
-                                    friendshipStatus = "WAITING";
+                                    friendshipStatus = FriendshiptStatus.WAITING;
                                 }
                                 break;
                             }

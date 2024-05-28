@@ -12,17 +12,17 @@ import org.springframework.web.bind.annotation.RestController;
 import com.capitan.chatapp.dto.FriendRequestDto;
 import com.capitan.chatapp.dto.FriendRequestOpDto;
 
-import com.capitan.chatapp.services.FriendRequestService;
+import com.capitan.chatapp.services.FriendshipService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/friend-requests")
-public class FriendRequestController {
+public class FriendshipController {
 
-    private FriendRequestService friendRequestService;
+    private FriendshipService friendRequestService;
 
-    public FriendRequestController(FriendRequestService friendRequestService) {
+    public FriendshipController(FriendshipService friendRequestService) {
         this.friendRequestService = friendRequestService;
 
     }
