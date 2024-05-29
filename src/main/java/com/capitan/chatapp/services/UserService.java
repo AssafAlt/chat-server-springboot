@@ -14,9 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import com.capitan.chatapp.dto.LoginResponseDto;
+import com.capitan.chatapp.dto.FriendDto;
 import com.capitan.chatapp.dto.FriendIsOnlineDto;
 import com.capitan.chatapp.dto.LoginDto;
 import com.capitan.chatapp.dto.RegisterDto;
@@ -26,8 +28,10 @@ import com.capitan.chatapp.dto.UpdateProfileImgDto;
 import com.capitan.chatapp.dto.UpdateProfileResponseDto;
 import com.capitan.chatapp.models.Friendship;
 import com.capitan.chatapp.models.FriendshiptStatus;
+import com.capitan.chatapp.models.Notification;
 import com.capitan.chatapp.models.Role;
 import com.capitan.chatapp.models.UserEntity;
+import com.capitan.chatapp.repository.FriendshipRepository;
 import com.capitan.chatapp.repository.RoleRepository;
 import com.capitan.chatapp.repository.UserRepository;
 import com.capitan.chatapp.security.JwtGenerator;
@@ -46,14 +50,20 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
     private JwtGenerator jwtGenerator;
     private AuthenticationManager authenticationManager;
+    private SimpMessagingTemplate simpMessagingTemplate;
+    private FriendshipRepository friendshipRepository;
 
     public UserService(UserRepository userRepository, RoleRepository roleRepository,
-            PasswordEncoder passwordEncoder, JwtGenerator jwtGenerator, AuthenticationManager authenticationManager) {
+            PasswordEncoder passwordEncoder, JwtGenerator jwtGenerator, AuthenticationManager authenticationManager,
+            FriendshipRepository friendshipRepository,
+            SimpMessagingTemplate simpMessagingTemplate) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtGenerator = jwtGenerator;
         this.authenticationManager = authenticationManager;
+        this.friendshipRepository = friendshipRepository;
+        this.simpMessagingTemplate = simpMessagingTemplate;
 
     }
 
@@ -147,11 +157,33 @@ public class UserService {
 
     public ResponseEntity<?> updateProfileImage(UpdateProfileImgDto profileImgDto, HttpServletRequest request) {
         try {
-            String opUsername = jwtGenerator.getUserNameFromJWTCookies(request);
-            if (userRepository.existsByUsername(opUsername)) {
-                userRepository.updateProfileImage(opUsername, profileImgDto.getImagePath(), false);
+            String opName = jwtGenerator.getUserNameFromJWTCookies(request);
+            Optional<UserEntity> op = userRepository.findByUsername(opName);
+            if (op.isPresent()) {
+                UserEntity opUser = op.get();
+                userRepository.updateProfileImage(opName, profileImgDto.getImagePath(), false);
                 UpdateProfileResponseDto responseDto = new UpdateProfileResponseDto(profileImgDto.getImagePath(),
                         false);
+                Optional<List<FriendDto>> friendsOptional = friendshipRepository.getOnlineFriends(opUser.getId());
+
+                friendsOptional.ifPresent(friends -> {
+                    List<String> onlineFriendNames = friends.stream()
+                            .map(FriendDto::getNickname)
+                            .collect(Collectors.toList());
+
+                    onlineFriendNames.forEach(name -> {
+                        FriendIsOnlineDto friend = new FriendIsOnlineDto(profileImgDto.getImagePath(),
+                                opUser.getNickname(),
+                                true);
+                        Notification notification = new Notification(
+                                opUser.getNickname() + " Updated its profile image",
+                                com.capitan.chatapp.models.MessageType.FRIEND_UPDATED_IMG, friend);
+                        simpMessagingTemplate.convertAndSendToUser(name, "/queue/notifications",
+                                notification);
+
+                    });
+
+                });
 
                 return new ResponseEntity<>(responseDto, HttpStatus.OK);
 
