@@ -134,6 +134,56 @@ public class FriendshipService {
 
     }
 
+    public ResponseEntity<String> deleteFriendship(@RequestBody FriendRequestOpDto friendRequestOpDto,
+            HttpServletRequest request) {
+        try {
+            int friendshipIdToDelete = friendRequestOpDto.getFriendRequestId();
+            Optional<UserEntity> op = userRepository
+                    .findByUsername(jwtGenerator.getUserNameFromJWTCookies(request));
+            Optional<Friendship> fShip = friendshipRepository.findById(friendshipIdToDelete);
+
+            if (op.isPresent() && fShip.isPresent()) {
+                Friendship friendship = fShip.get();
+                UserEntity opUser = op.get();
+                String userNicknameToNotify;
+                Integer userIdToNotify;
+                if (opUser.getId() == friendship.getReceiverEntity().getId()) {
+                    userNicknameToNotify = friendship.getSenderEntity().getNickname();
+                    userIdToNotify = friendship.getSenderEntity().getId();
+
+                } else {
+                    userNicknameToNotify = friendship.getReceiverEntity().getNickname();
+                    userIdToNotify = friendship.getReceiverEntity().getId();
+
+                }
+                friendshipRepository.deleteById(friendshipIdToDelete);
+
+                Boolean isUserOnline = userRepository.isUserOnline(userIdToNotify);
+                if (isUserOnline) {
+
+                    FriendIsOnlineDto friend = new FriendIsOnlineDto(opUser.getProfileImg(), opUser.getNickname(),
+                            true);
+                    Notification notification = new Notification(
+                            "",
+                            com.capitan.chatapp.models.MessageType.FRIENDSHIP_DELETED, friend);
+                    simpMessagingTemplate.convertAndSendToUser(userNicknameToNotify, "/queue/notifications",
+                            notification);
+                }
+                return new ResponseEntity<>("Request was deleted successfully", HttpStatus.OK);
+            }
+
+            else {
+                return new ResponseEntity<>("User or request wasn't found", HttpStatus.NOT_FOUND);
+            }
+
+        } catch (
+
+        Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+
+    }
+
     @Transactional
     public ResponseEntity<String> confirmFriendRequest(@RequestBody FriendRequestOpDto friendRequestOpDto,
             HttpServletRequest request) {
@@ -202,37 +252,6 @@ public class FriendshipService {
         }
     }
 
-    /*
-     * public ResponseEntity<?> getFriendRequests(HttpServletRequest request) {
-     * try {
-     * 
-     * Optional<UserEntity> op = userRepository
-     * .findByUsername(jwtGenerator.getUserNameFromJWTCookies(request));
-     * if (op.isPresent()) {
-     * UserEntity opUser = op.get();
-     * Optional<List<GetFriendRequestDto>> frequests = friendshipRepository
-     * .findFriendRequestsDetailsByReceiverId(opUser.getId());
-     * if (frequests.isPresent()) {
-     * return new ResponseEntity<>(frequests.get(), HttpStatus.OK);
-     * 
-     * } else {
-     * return new ResponseEntity<>("User unauthorized for this operation",
-     * HttpStatus.UNAUTHORIZED);
-     * }
-     * } else
-     * 
-     * {
-     * return new ResponseEntity<>("User or request wasn't found",
-     * HttpStatus.NOT_FOUND);
-     * }
-     * 
-     * } catch (
-     * 
-     * Exception e) {
-     * return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-     * }
-     * }
-     */
     public ResponseEntity<?> getFriends(HttpServletRequest request) {
         try {
 
