@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import com.capitan.chatapp.dto.GetFriendRequestDto;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -64,23 +66,16 @@ public class UserEntity {
     private List<Role> roles = new ArrayList<>();
 
     @OneToMany(mappedBy = "senderEntity", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<FriendRequest> sentFriendRequests = new ArrayList<>();
+    private List<Friendship> friendshipsAsSender = new ArrayList<>();
 
     @OneToMany(mappedBy = "receiverEntity", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<FriendRequest> receivedFriendRequests = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user1", cascade = CascadeType.ALL)
-    private List<Friendship> friendshipsAsUser1 = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user2", cascade = CascadeType.ALL)
-    private List<Friendship> friendshipsAsUser2 = new ArrayList<>();
+    private List<Friendship> friendshipsAsReciever = new ArrayList<>();
 
     public String generateEncodedNickname(String nickNamePrefix) {
-        // Extract the prefix of the username until the '@' sign
+
         int atIndex = this.username.indexOf('@');
         String usernamePrefix = atIndex != -1 ? username.substring(0, atIndex) : username;
 
-        // Convert the username prefix to numbers using ASCII values
         StringBuilder numericUsernamePrefix = new StringBuilder();
         for (char c : usernamePrefix.toCharArray()) {
             numericUsernamePrefix.append((int) c);
@@ -89,20 +84,49 @@ public class UserEntity {
         Random ran = new Random();
         int randomNum = ran.nextInt(1000);
 
-        // Combine the nickname, numeric username prefix, and a random number
         String encodedNickname = nickNamePrefix + numericUsernamePrefix.toString() + randomNum;
 
         return encodedNickname;
     }
 
-    public List<UserEntity> getFriends() {
-        List<UserEntity> friends = new ArrayList<>();
-        for (Friendship friendship : friendshipsAsUser1) {
-            friends.add(friendship.getUser2());
+    /*
+     * public class GetFriendRequestDto {
+     * private int id;
+     * private String profileImg;
+     * private String nickname;
+     * 
+     * @DateTimeFormat(pattern = "MM-dd-yyyy")
+     * private LocalDate date;
+     * }
+     * 
+     * 
+     * public List<GetFriendRequestDto> getFriendships() {
+     * List<FriendDto> friends = new ArrayList<>();
+     * for (Friendship friendship : friendshipsAsSender) {
+     * friends.add(friendship.getReceiverEntity());
+     * }
+     * for (Friendship friendship : friendshipsAsReciever) {
+     * friends.add(friendship.getSenderEntity());
+     * }
+     * return friends;
+     * }
+     */
+
+    public List<GetFriendRequestDto> getFriendRequests() {
+        List<GetFriendRequestDto> fRequests = new ArrayList<>();
+
+        for (Friendship friendship : friendshipsAsReciever) {
+            if (friendship.getStatus().equals(FriendshiptStatus.PENDING)) {
+                UserEntity sender = friendship.getSenderEntity();
+                GetFriendRequestDto dto = new GetFriendRequestDto(friendship.getId(), sender.getProfileImg(),
+                        sender.getNickname(), friendship.getDate());
+                fRequests.add(dto);
+            } else {
+                continue;
+            }
+
         }
-        for (Friendship friendship : friendshipsAsUser2) {
-            friends.add(friendship.getUser1());
-        }
-        return friends;
+        return fRequests;
+
     }
 }

@@ -14,9 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import com.capitan.chatapp.dto.LoginResponseDto;
+import com.capitan.chatapp.dto.FriendDto;
 import com.capitan.chatapp.dto.FriendIsOnlineDto;
 import com.capitan.chatapp.dto.LoginDto;
 import com.capitan.chatapp.dto.RegisterDto;
@@ -24,9 +26,12 @@ import com.capitan.chatapp.dto.SearchUserResponseDto;
 import com.capitan.chatapp.dto.UpdateFirstLoginResponseDto;
 import com.capitan.chatapp.dto.UpdateProfileImgDto;
 import com.capitan.chatapp.dto.UpdateProfileResponseDto;
-import com.capitan.chatapp.models.FriendRequest;
+import com.capitan.chatapp.models.Friendship;
+import com.capitan.chatapp.models.FriendshiptStatus;
+import com.capitan.chatapp.models.Notification;
 import com.capitan.chatapp.models.Role;
 import com.capitan.chatapp.models.UserEntity;
+import com.capitan.chatapp.repository.FriendshipRepository;
 import com.capitan.chatapp.repository.RoleRepository;
 import com.capitan.chatapp.repository.UserRepository;
 import com.capitan.chatapp.security.JwtGenerator;
@@ -45,14 +50,20 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
     private JwtGenerator jwtGenerator;
     private AuthenticationManager authenticationManager;
+    private SimpMessagingTemplate simpMessagingTemplate;
+    private FriendshipRepository friendshipRepository;
 
     public UserService(UserRepository userRepository, RoleRepository roleRepository,
-            PasswordEncoder passwordEncoder, JwtGenerator jwtGenerator, AuthenticationManager authenticationManager) {
+            PasswordEncoder passwordEncoder, JwtGenerator jwtGenerator, AuthenticationManager authenticationManager,
+            FriendshipRepository friendshipRepository,
+            SimpMessagingTemplate simpMessagingTemplate) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtGenerator = jwtGenerator;
         this.authenticationManager = authenticationManager;
+        this.friendshipRepository = friendshipRepository;
+        this.simpMessagingTemplate = simpMessagingTemplate;
 
     }
 
@@ -109,6 +120,7 @@ public class UserService {
             }
 
         } catch (Exception e) {
+            System.out.println(e);
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
@@ -145,11 +157,33 @@ public class UserService {
 
     public ResponseEntity<?> updateProfileImage(UpdateProfileImgDto profileImgDto, HttpServletRequest request) {
         try {
-            String opUsername = jwtGenerator.getUserNameFromJWTCookies(request);
-            if (userRepository.existsByUsername(opUsername)) {
-                userRepository.updateProfileImage(opUsername, profileImgDto.getImagePath(), false);
+            String opName = jwtGenerator.getUserNameFromJWTCookies(request);
+            Optional<UserEntity> op = userRepository.findByUsername(opName);
+            if (op.isPresent()) {
+                UserEntity opUser = op.get();
+                userRepository.updateProfileImage(opName, profileImgDto.getImagePath(), false);
                 UpdateProfileResponseDto responseDto = new UpdateProfileResponseDto(profileImgDto.getImagePath(),
                         false);
+                Optional<List<FriendDto>> friendsOptional = friendshipRepository.getOnlineFriends(opUser.getId());
+
+                friendsOptional.ifPresent(friends -> {
+                    List<String> onlineFriendNames = friends.stream()
+                            .map(FriendDto::getNickname)
+                            .collect(Collectors.toList());
+
+                    onlineFriendNames.forEach(name -> {
+                        FriendIsOnlineDto friend = new FriendIsOnlineDto(profileImgDto.getImagePath(),
+                                opUser.getNickname(),
+                                true);
+                        Notification notification = new Notification(
+                                opUser.getNickname() + " Updated its profile image",
+                                com.capitan.chatapp.models.MessageType.FRIEND_UPDATED_IMG, friend);
+                        simpMessagingTemplate.convertAndSendToUser(name, "/queue/notifications",
+                                notification);
+
+                    });
+
+                });
 
                 return new ResponseEntity<>(responseDto, HttpStatus.OK);
 
@@ -202,34 +236,6 @@ public class UserService {
         return userRepository.existsByNickname(nickname);
     }
 
-    /*
-     * public ResponseEntity<?> searchUsersByNicknamePrefix(String prefix,
-     * HttpServletRequest request) {
-     * try {
-     * Optional<UserEntity> op = userRepository
-     * .findByUsername(jwtGenerator.getUserNameFromJWTCookies(request));
-     * if (op.isPresent()) {
-     * String searcherNickname = op.get().getNickname();
-     * Optional<List<SearchUserResponseDto>> searchedUsers = userRepository
-     * .findByNicknamePrefix("%" + prefix + "%", searcherNickname);
-     * 
-     * if (searchedUsers.isPresent()) {
-     * 
-     * return new ResponseEntity<>(searchedUsers.get(), HttpStatus.OK);
-     * } else {
-     * return new ResponseEntity<>("There is no matching result", HttpStatus.OK);
-     * }
-     * 
-     * } else {
-     * return new ResponseEntity<>("Unauthorized operation",
-     * HttpStatus.UNAUTHORIZED);
-     * }
-     * } catch (Exception e) {
-     * return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-     * }
-     * }
-     */
-
     public ResponseEntity<?> searchUsersByNicknamePrefix(String prefix, HttpServletRequest request) {
         try {
             Optional<UserEntity> op = userRepository
@@ -246,34 +252,34 @@ public class UserService {
                         if (user == null) {
                             return null;
                         }
-                        String friendshipStatus = "NOT_FRIENDS";
+                        FriendshiptStatus friendshipStatus = FriendshiptStatus.NOT_FRIENDS;
                         Integer friendRequestId = null;
-                        for (FriendRequest sentRequest : user.getSentFriendRequests()) {
+                        for (Friendship sentRequest : user.getFriendshipsAsSender()) {
                             if (sentRequest.getReceiverEntity().getId().equals(searcherId)) {
                                 friendRequestId = sentRequest.getId();
-                                if (sentRequest.getStatus().equals("CONFIRMED")) {
-                                    friendshipStatus = "FRIENDS";
+                                if (sentRequest.getStatus().equals(FriendshiptStatus.FRIENDS)) {
+                                    friendshipStatus = FriendshiptStatus.FRIENDS;
                                 } else {
-                                    friendshipStatus = "PENDING";
+                                    friendshipStatus = FriendshiptStatus.PENDING;
                                 }
                                 break;
                             } else if (sentRequest.getSenderEntity().getId().equals(searcherId)) {
                                 friendRequestId = sentRequest.getId();
-                                if (sentRequest.getStatus().equals("CONFIRMED")) {
-                                    friendshipStatus = "FRIENDS";
+                                if (sentRequest.getStatus().equals(FriendshiptStatus.FRIENDS)) {
+                                    friendshipStatus = FriendshiptStatus.FRIENDS;
                                 } else {
-                                    friendshipStatus = "WAITING";
+                                    friendshipStatus = FriendshiptStatus.WAITING;
                                 }
                                 break;
                             }
                         }
-                        for (FriendRequest receivedRequest : user.getReceivedFriendRequests()) {
+                        for (Friendship receivedRequest : user.getFriendshipsAsReciever()) {
                             if (receivedRequest.getSenderEntity().getId().equals(searcherId)) {
                                 friendRequestId = receivedRequest.getId();
-                                if (receivedRequest.getStatus().equals("CONFIRMED")) {
-                                    friendshipStatus = "FRIENDS";
+                                if (receivedRequest.getStatus().equals(FriendshiptStatus.FRIENDS)) {
+                                    friendshipStatus = FriendshiptStatus.FRIENDS;
                                 } else {
-                                    friendshipStatus = "WAITING";
+                                    friendshipStatus = FriendshiptStatus.WAITING;
                                 }
                                 break;
                             }

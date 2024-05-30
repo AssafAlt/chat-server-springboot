@@ -1,5 +1,7 @@
 package com.capitan.chatapp.dto;
 
+import com.capitan.chatapp.models.FriendshiptStatus;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -9,7 +11,7 @@ public class SearchUserResponseDto {
     private int userId;
     private String profileImg;
     private String nickname;
-    private String status;
+    private FriendshiptStatus status;
     private Integer requestId;
 
     public SearchUserResponseDto(int userId, String profileImg, String nickname) {
