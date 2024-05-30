@@ -2,6 +2,7 @@ package com.capitan.chatapp.models;
 
 import com.capitan.chatapp.dto.FriendIsOnlineDto;
 import com.capitan.chatapp.dto.GetFriendRequestDto;
+import com.capitan.chatapp.dto.NewMessageNotificationDto;
 
 import lombok.Data;
 
@@ -12,11 +13,18 @@ public class Notification {
     private FriendIsOnlineDto friend;
     private GetFriendRequestDto fRequest;
     private Integer requestId;
+    private NewMessageNotificationDto info;
 
     public Notification(String message, MessageType messageType, FriendIsOnlineDto friend) {
         this.message = message;
         this.messageType = messageType;
         this.friend = friend;
+    }
+
+    public Notification(String message, MessageType messageType, NewMessageNotificationDto info) {
+        this.message = message;
+        this.messageType = messageType;
+        this.info = info;
     }
 
     public Notification(String message, MessageType messageType, GetFriendRequestDto fRequest) {

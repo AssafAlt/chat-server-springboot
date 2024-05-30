@@ -16,6 +16,8 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import com.capitan.chatapp.dto.ChatMessageDto;
 import com.capitan.chatapp.dto.ChatMessageResponseDto;
+import com.capitan.chatapp.dto.NewMessageNotificationDto;
+import com.capitan.chatapp.models.Notification;
 import com.capitan.chatapp.services.ChatService;
 
 @Controller
@@ -63,12 +65,18 @@ public class ChatController {
     public void sendPrivateMessage(@DestinationVariable String roomName, ChatMessageDto message) {
         try {
             Long messageId = chatService.saveMessage(message);
+            NewMessageNotificationDto info = new NewMessageNotificationDto(roomName, message.getContent());
 
             ChatMessageResponseDto newMessage = new ChatMessageResponseDto(messageId, message.getSender(),
                     message.getContent(),
                     message.getDate(),
                     message.getTime());
             simpMessagingTemplate.convertAndSend("/topic/private." + roomName, newMessage);
+            Notification notification = new Notification(
+                    message.getSender() + " Sent you a new message!",
+                    com.capitan.chatapp.models.MessageType.NEW_MESSAGE, info);
+            simpMessagingTemplate.convertAndSendToUser(message.getRecipient(), "/queue/notifications",
+                    notification);
         } catch (Exception e) {
             System.out.println(e);
         }
